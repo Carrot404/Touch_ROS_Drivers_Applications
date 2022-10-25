@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(omni_common)
+project(touch_common)
 
 find_package(catkin REQUIRED COMPONENTS 
   geometry_msgs 
-  omni_msgs 
+  touch_msgs 
   sensor_msgs 
   std_msgs 
   tf
@@ -12,8 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 CATKIN_DEPENDS 
   geometry_msgs 
-  omni_description 
-  omni_msgs 
+  touch_description 
+  touch_msgs 
   robot_state_publisher 
   sensor_msgs 
   std_msgs 
@@ -33,9 +33,9 @@ endif(NOT OPENHAPTICS_INCLUDE_DIR)
   
 add_executable(omni src/omni.cpp)
 target_link_libraries(omni HD HDU rt ncurses ${catkin_LIBRARIES})
-add_dependencies(omni omni_msgs_gencpp)
+# add_dependencies(omni omni_msgs_gencpp)
 
 add_executable(omni_state src/omni_state.cpp)
 target_link_libraries(omni_state HD HDU rt ncurses ${catkin_LIBRARIES})
-add_dependencies(omni_state omni_msgs_gencpp)
+# add_dependencies(omni_state omni_msgs_gencpp)
 
