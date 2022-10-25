@@ -1,7 +1,10 @@
 <?xml version="1.0"?>
 <launch>
 	<arg name="gui" default="true" />
-	<param name="robot_description" command="$(find xacro)/xacro  --inorder  '$(find touch_description)/urdf/omni.urdf'" />
+
+	<!-- <param name="robot_description" command="$(find xacro)/xacro '$(find touch_description)/urdf/touch.urdf'" /> -->
+	<include file="$(find touch_description)/launch/load_touch.launch" >
+	</include>
 	
 	<node if="$(arg gui)" name="joint_state_publisher" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" />
 	<node unless="$(arg gui)" name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
