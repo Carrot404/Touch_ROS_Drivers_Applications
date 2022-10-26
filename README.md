@@ -61,6 +61,16 @@ sudo apt install libncurses5-dev freeglut3-dev zlib1g-dev
 
 The Touch ROS driver is originally forked from Francisco Suárez Ruiz [phantom_omni](https://github.com/fsuarez6/phantom_omni). 
 
+#TODO:
+
+1. urdf seems not exactly map to the real touch. 
+
+`phantom_omni` `Geomagic_Touch_ROS_Drivers` same urdf  6th axis different `modular_teleop` 
+
+`ros_geomagic_touch_phantom_omni` urdf 初始状态不一样；也有点问题
+
+
+
 
 
 ## 3. Applications with UR3
