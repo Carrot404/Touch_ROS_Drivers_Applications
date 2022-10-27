@@ -1,7 +1,5 @@
 # Learning OpenHaptics for Geomagic Touch
 
---------
-
 ## 1. QuickHaptics micro API
 
 
@@ -38,6 +36,8 @@ The URDF file defined by above repository assigns a new frame for this robot as 
 **Position:**
 
 the end effector's position is verified by the computed transformation (TF) and the HDAPI's GetPosition function. There exists some bias because the origin of frame assigned by HDAPI is not sure. It is just a approximation.
+
+
 $$
 \left[\begin{array}{c}
 T F_x \\
