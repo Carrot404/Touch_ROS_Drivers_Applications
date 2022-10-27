@@ -27,7 +27,7 @@
   <joint name="base_fixed" type="fixed" >
     <parent link="base" />
     <child link="base_ref" />
-    <origin xyz="0 0.155 0.090" rpy="1.5708 0 3.1416" />
+    <origin xyz="0 0.157 0.090" rpy="1.5708 0 3.1416" />
   </joint>
 
   <link name="base_ref" />
