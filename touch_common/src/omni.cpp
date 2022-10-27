@@ -1,10 +1,13 @@
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
-#include <tf/transform_broadcaster.h>
+// #include <tf/transform_broadcaster.h>
 #include <geometry_msgs/Wrench.h>
 #include <geometry_msgs/WrenchStamped.h>
 #include <urdf/model.h>
 #include <sensor_msgs/JointState.h>
+
+#include <tf/tf.h>
+#include <tf/transform_listener.h>
 
 #include <string.h>
 #include <stdio.h>
@@ -17,6 +20,7 @@
 #include <HDU/hduError.h>
 #include <HDU/hduVector.h>
 #include <HDU/hduMatrix.h>
+#include <HDU/hduQuaternion.h>
 
 #include <touch_msgs/TouchButtonEvent.h>
 #include <touch_msgs/TouchFeedback.h>
@@ -44,6 +48,9 @@ struct OmniState {
   int buttons_prev[2];
   bool lock;
   hduVector3Dd lock_pos;
+
+  // hduMatrix rotMat;
+  // hduQuaternion quat;
 };
 
 class PhantomROS {
@@ -51,6 +58,7 @@ class PhantomROS {
 public:
   ros::NodeHandle n;
   ros::Publisher pose_publisher;
+  // ros::Publisher pose_publisher2; // Test for position
   ros::Publisher joint_pub;
 
   ros::Publisher button_publisher;
@@ -60,7 +68,9 @@ public:
   std::string link_names[7];
 
   OmniState *state;
-  tf::TransformBroadcaster br;
+  // tf::TransformBroadcaster br;
+	boost::shared_ptr<tf::TransformListener> tf_listener;
+  
 
   void init(OmniState *s) {
     ros::param::param(std::string("~omni_name"), omni_name,
@@ -72,6 +82,10 @@ public:
     std::string pose_topic_name = std::string(stream00.str());
     pose_publisher = n.advertise<geometry_msgs::PoseStamped>(
         pose_topic_name.c_str(), 100);
+    
+    // Test for position
+    // pose_publisher2 = n.advertise<geometry_msgs::PoseStamped>(
+    //     "/phantom/pose2", 100);
 
     joint_pub = n.advertise<sensor_msgs::JointState>("joint_states", 1);
 
@@ -118,6 +132,7 @@ public:
     state->lock = true;
     state->lock_pos = zeros;
 
+		tf_listener = boost::shared_ptr<tf::TransformListener>(new tf::TransformListener());
   }
 
   /*******************************************************************************
@@ -138,6 +153,7 @@ public:
   }
 
   void publish_omni_state() {
+    // modified according to URDF
     sensor_msgs::JointState joint_state;
     joint_state.header.stamp = ros::Time::now();
     joint_state.name.resize(6);
@@ -149,20 +165,58 @@ public:
     joint_state.name[2] = "elbow";
     joint_state.position[2] = state->thetas[3];
     joint_state.name[3] = "yaw";
-    joint_state.position[3] = -state->thetas[4] + M_PI;
+    // joint_state.position[3] = -state->thetas[4] + M_PI;
+    joint_state.position[3] = -state->thetas[4];
+
     joint_state.name[4] = "pitch";
-    joint_state.position[4] = -state->thetas[5] - 3*M_PI/4;
+    // joint_state.position[4] = -state->thetas[5] - 3*M_PI/4;
+    joint_state.position[4] = state->thetas[5] + 1.49;
     joint_state.name[5] = "roll";
-    joint_state.position[5] = -state->thetas[6] - M_PI;
+    // joint_state.position[5] = -state->thetas[6] - M_PI;
+    joint_state.position[5] = state->thetas[6];
     joint_pub.publish(joint_state);
 
-    //Sample 'end effector' pose
+    // Sample 'end effector' pose
+    // tf::StampedTransform transform;
+    // try{
+    //   tf_listener->waitForTransform("base_ref", "stylus_ref", ros::Time(0), ros::Duration(0.5));
+    //   tf_listener->lookupTransform("base_ref", "stylus_ref", ros::Time(0), transform);
+    // }
+    // catch(tf::TransformException &ex){
+		// 	ROS_ERROR("transform exception : %s",ex.what());
+		// 	return;
+		// }
+    // tf::Quaternion quat =  transform.getRotation();
+    // std::cout<<"api x:"<<state->quat.v()[0]<<" "<<quat.getX()<<std::endl;
+    // std::cout<<"api y:"<<state->quat.v()[1]<<" "<<quat.getY()<<std::endl;
+    // std::cout<<"api z:"<<state->quat.v()[2]<<" "<<quat.getZ()<<std::endl;
+    // std::cout<<"api w:"<<state->quat.s()<<" "<<quat.getW()<<std::endl;
+
+
     geometry_msgs::PoseStamped pose_stamped;
     pose_stamped.header.frame_id = link_names[6].c_str();
     pose_stamped.header.stamp = ros::Time::now();
-    pose_stamped.pose.position.x = 0.0;   //was 0.03 to end of phantom
+    // pose_stamped.pose.position.x = - state->position[0];
+    // pose_stamped.pose.position.y = state->position[2];
+    // pose_stamped.pose.position.z = state->position[1];
+
+    pose_stamped.pose.position.x = state->velocity[0];
+    pose_stamped.pose.position.y = state->velocity[1];
+    pose_stamped.pose.position.z = state->velocity[2];
+
     pose_stamped.pose.orientation.w = 1.;
     pose_publisher.publish(pose_stamped);
+
+    // Test for position
+    // pose_stamped.header.stamp = ros::Time::now();
+    // pose_stamped.pose.position.x = origin.getX()*1000;
+    // pose_stamped.pose.position.y = origin.getY()*1000-157.0;
+    // pose_stamped.pose.position.z = origin.getZ()*1000-90.0;
+
+    // pose_stamped.pose.orientation.w = 1.;
+    // pose_publisher2.publish(pose_stamped);
+
+
 
     if ((state->buttons[0] != state->buttons_prev[0])
         or (state->buttons[1] != state->buttons_prev[1])) {
@@ -192,28 +246,39 @@ HDCallbackCode HDCALLBACK omni_state_callback(void *pUserData) {
   hdGetDoublev(HD_CURRENT_GIMBAL_ANGLES, omni_state->rot);
   hdGetDoublev(HD_CURRENT_POSITION, omni_state->position);
   hdGetDoublev(HD_CURRENT_JOINT_ANGLES, omni_state->joints);
+  hduMatrix transform;
+  hdGetDoublev(HD_CURRENT_TRANSFORM, transform);
 
-  hduVector3Dd vel_buff(0, 0, 0);
-  vel_buff = (omni_state->position * 3 - 4 * omni_state->pos_hist1
-      + omni_state->pos_hist2) / 0.002;  //mm/s, 2nd order backward dif
-  omni_state->velocity = (.2196 * (vel_buff + omni_state->inp_vel3)
-      + .6588 * (omni_state->inp_vel1 + omni_state->inp_vel2)) / 1000.0
-      - (-2.7488 * omni_state->out_vel1 + 2.5282 * omni_state->out_vel2
-          - 0.7776 * omni_state->out_vel3);  //cutoff freq of 20 Hz
-  omni_state->pos_hist2 = omni_state->pos_hist1;
-  omni_state->pos_hist1 = omni_state->position;
-  omni_state->inp_vel3 = omni_state->inp_vel2;
-  omni_state->inp_vel2 = omni_state->inp_vel1;
-  omni_state->inp_vel1 = vel_buff;
-  omni_state->out_vel3 = omni_state->out_vel2;
-  omni_state->out_vel2 = omni_state->out_vel1;
-  omni_state->out_vel1 = omni_state->velocity;
+  
+  hdGetDoublev(HD_CURRENT_VELOCITY, omni_state->velocity);
+
+  // transform.getRotation(omni_state->quat);
+
+  // omni_state->rotMat = transform;
+  // transform.getRotationMatrix(omni_state->rotMat);
+
+  // hduVector3Dd vel_buff(0, 0, 0);
+  // vel_buff = (omni_state->position * 3 - 4 * omni_state->pos_hist1
+  //     + omni_state->pos_hist2) / 0.002;  //mm/s, 2nd order backward dif
+  // omni_state->velocity = (.2196 * (vel_buff + omni_state->inp_vel3)
+  //     + .6588 * (omni_state->inp_vel1 + omni_state->inp_vel2)) / 1000.0
+  //     - (-2.7488 * omni_state->out_vel1 + 2.5282 * omni_state->out_vel2
+  //         - 0.7776 * omni_state->out_vel3);  //cutoff freq of 20 Hz
+  // omni_state->pos_hist2 = omni_state->pos_hist1;
+  // omni_state->pos_hist1 = omni_state->position;
+  // omni_state->inp_vel3 = omni_state->inp_vel2;
+  // omni_state->inp_vel2 = omni_state->inp_vel1;
+  // omni_state->inp_vel1 = vel_buff;
+  // omni_state->out_vel3 = omni_state->out_vel2;
+  // omni_state->out_vel2 = omni_state->out_vel1;
+  // omni_state->out_vel1 = omni_state->velocity;
+
   if (omni_state->lock == true) {
     omni_state->force = 0.04 * (omni_state->lock_pos - omni_state->position)
         - 0.001 * omni_state->velocity;
   }
 
-  hdSetDoublev(HD_CURRENT_FORCE, omni_state->force);
+  hdSetDoublev(HD_CURRENT_TORQUE, omni_state->force);
 
   //Get buttons
   int nButtons = 0;
