@@ -37,26 +37,22 @@ The URDF file defined by above repository assigns a new frame for this robot as 
 
 the end effector's position is verified by the computed transformation (TF) and the HDAPI's GetPosition function. There exists some bias because the origin of frame assigned by HDAPI is not sure. It is just a approximation.
 
-
-$$
-\left[\begin{array}{c}
+$$\left[ \begin{array}{c}
 T F_x \\
 T F_y \\
 T F_z
 \end{array}\right] \cdot 1000
 +
-\left[\begin{array}{c}
+\left[ \begin{array}{c}
 0 \\
 -156 \\
--90
-\end{array}\right]
-=
+-90 
+\end{array}\right]=
 \left[\begin{array}{c}
 A P I_x \\
 A P I_y \\
 A P I_z
-\end{array}\right]
-$$
+\end{array}\right]$$
 
 
 **Orientation:**
