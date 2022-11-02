@@ -1,0 +1,25 @@
+<launch>
+  <!-- <arg name="reference_frame" default="/map"/>
+  <arg name="units" default="mm"/> -->
+  <!-- <arg name="publish_rate" default="1000"/> -->
+  <arg name="device_name" default="carrot"/>
+  <arg name="touch_namespace" default="Touch"/>
+  <arg name="publish_rate" default="500"/>
+
+  <include file="$(find touch_description)/launch/load_touch.launch" >
+  </include>
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" >
+    <remap from="joint_states" to="Touch/joint_states" />
+  </node>
+
+
+  <node name="Touch_State_Node" pkg="touch_common" type="touch_state" output="screen"> 
+    <param name="device_name" value="$(arg device_name)"/>
+    <param name="touch_namespace" value="$(arg touch_namespace)"/>
+    <param name="publish_rate" value="$(arg publish_rate)"/>
+  </node>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find touch_common)/launch/omni.rviz" required="true" />
+
+</launch>
