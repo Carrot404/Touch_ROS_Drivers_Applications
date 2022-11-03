@@ -35,8 +35,7 @@ The URDF file defined by above repository assigns a new frame for this robot as 
 
 **Position:**
 
-the end effector's position is verified by the computed transformation (TF) and the HDAPI's GetPosition function. There exists some bias because the origin of frame assigned by HDAPI is not sure. It is just a approximation.
-
+the end effector's position is verified by the computed transformation (TF) and the HDAPI's GetPosition function. There exists some bias because the origin of frame assigned by HDAPI is not sure. It is just a approximation. 
 
 $$
 \left[\begin{array}{c}
@@ -58,8 +57,25 @@ A P I_z
 \end{array}\right]
 $$
 
+- Add **base_ref** frame in URDF file. 
 
 **Orientation:**
 
+similarly we assign **stylus_ref** frame in URDF to represent the frame in API's view.
 
+### 4.2 Teleoperation
+
+- **Position to Position** 
+
+![UR_TF](./img/UR_TF.png)
+
+![Touch_TF_probe](./img/Touch_TF_probe.png)
+
+
+
+**base_link**->**base_link_inertial**->......->**tool0**->**probe_end**
+
+master Joint values -> Cartesian position -> filter -> slave position 
+
+- **Position to Velocity**
 

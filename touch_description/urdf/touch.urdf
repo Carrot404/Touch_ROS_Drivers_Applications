@@ -157,7 +157,17 @@
     <origin xyz="0 0 0" rpy="1.5708 0 0" />
   </joint>
 
+  <!-- frame probe for tranform to the probe frame -->
+  <!-- TODO: remain to be verified -->
   <link name="stylus_ref" />
+
+  <joint name="probe_fixed" type="fixed" >
+    <parent link="stylus_ref" />
+    <child link="probe" />
+    <origin xyz="0 0 0" rpy="3.14159 0 0" />
+  </joint>
+
+  <link name="probe" />
 
 </robot>
 
