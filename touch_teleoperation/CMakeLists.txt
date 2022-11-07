@@ -9,7 +9,8 @@ project(touch_teleoperation)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
     roscpp tf
-    sensor_msgs geometry_msgs touch_msgs
+    moveit_core moveit_ros_planning_interface
+    sensor_msgs geometry_msgs touch_msgs 
 
 )
 

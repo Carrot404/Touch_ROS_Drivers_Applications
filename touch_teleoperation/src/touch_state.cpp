@@ -61,7 +61,7 @@ private:
     ros::Publisher button_pub_;
     ros::Publisher joint_pub_;
     ros::Publisher poseref_pub_;
-    ros::Publisher pose_pub_;
+    // ros::Publisher pose_pub_;
 
 
     // ros::Publisher state_pub_;
@@ -72,7 +72,7 @@ private:
 
 
     TouchState *state_;
-	boost::shared_ptr<tf::TransformListener> tf_listener_;
+	// boost::shared_ptr<tf::TransformListener> tf_listener_;
 
 public:
     // Constructor and destructor
@@ -114,16 +114,16 @@ PhantomROS::PhantomROS(ros::NodeHandle nh, TouchState *state) : nh_(nh), priv_nh
     // Publish pose on NAMESPACE/pose based on urdf defined frame
     // base_frame: base
     // target_frame: stylus
-    std::string pose_topic = touch_name_+"/pose";
-    pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>(pose_topic.c_str(), 1);
+    /* std::string pose_topic = touch_name_+"/pose";
+    pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>(pose_topic.c_str(), 1); */
 
-    tf_listener_ = boost::shared_ptr<tf::TransformListener>(new tf::TransformListener());
+    /* tf_listener_ = boost::shared_ptr<tf::TransformListener>(new tf::TransformListener());
     try{
         tf_listener_->waitForTransform("base", "stylus", ros::Time(0), ros::Duration(2));
     }
     catch(tf::TransformException &ex){
         ROS_ERROR("tf listener: transform exception : %s",ex.what());
-    }
+    } */
 
     // TouchState Init
     // state_ = boost::shared_ptr<TouchState>(new TouchState());
@@ -199,7 +199,7 @@ void PhantomROS::publish_touch_state()
     poseref_pub_.publish(poseref_msg);
 
     // Pose_based urdf publisher
-    tf::StampedTransform transform_tf;
+    /* tf::StampedTransform transform_tf;
     try{
         tf_listener_->waitForTransform("base", "stylus", ros::Time(0), ros::Duration(0.5));
         tf_listener_->lookupTransform("base", "stylus", ros::Time(0), transform_tf);
@@ -215,7 +215,7 @@ void PhantomROS::publish_touch_state()
     pose_msg.header.stamp = joint_msg.header.stamp;
     tf::pointTFToMsg(vec_tf, pose_msg.pose.position);
     tf::quaternionTFToMsg(quat_tf, pose_msg.pose.orientation);
-    pose_pub_.publish(pose_msg);
+    pose_pub_.publish(pose_msg); */
 
 
 

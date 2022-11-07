@@ -54,6 +54,10 @@
   <exec_depend>roscpp</exec_depend>
   <build_depend>tf</build_depend>
   <exec_depend>tf</exec_depend>
+  <build_depend>moveit_core</build_depend>
+  <exec_depend>moveit_core</exec_depend>
+  <build_depend>moveit_ros_planning_interface</build_depend>
+  <exec_depend>moveit_ros_planning_interface</exec_depend>
   <build_depend>sensor_msgs</build_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <build_depend>geometry_msgs</build_depend>
