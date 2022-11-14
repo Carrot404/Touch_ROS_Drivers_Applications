@@ -157,27 +157,28 @@ int main(int argc, char** argv)
     ////////////////////////////////////////////////////////////////
     // Init Move Group
     ////////////////////////////////////////////////////////////////
-    boost::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group;
-    move_group = boost::shared_ptr<moveit::planning_interface::MoveGroupInterface>(new moveit::planning_interface::MoveGroupInterface("manipulator"));
-    ROS_INFO("Planning frame: %s", move_group->getPlanningFrame().c_str());
-    ROS_INFO("Available Joint Names:");
-    std::copy(move_group->getJointNames().begin(), move_group->getJointNames().end(),
-                std::ostream_iterator<std::string>(std::cout, ", "));
-    std::cout<<std::endl;
-    // move_group->setEndEffectorLink("probe_end");
-    ROS_INFO("End effector link: %s", move_group->getEndEffectorLink().c_str());
+    // boost::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group;
+    // move_group = boost::shared_ptr<moveit::planning_interface::MoveGroupInterface>(new moveit::planning_interface::MoveGroupInterface("manipulator"));
+    // ROS_INFO("Planning frame: %s", move_group->getPlanningFrame().c_str());
+    // ROS_INFO("Available Joint Names:");
+    // std::copy(move_group->getJointNames().begin(), move_group->getJointNames().end(),
+    //             std::ostream_iterator<std::string>(std::cout, ", "));
+    // std::cout<<std::endl;
+    // // move_group->setEndEffectorLink("probe_end");
+    // ROS_INFO("End effector link: %s", move_group->getEndEffectorLink().c_str());
+
     // Init robot state to HOME
 
-    std::vector<double> zero_pos;
-    zero_pos.resize(6);
-    for (int i=0; i<6; i++){
-        zero_pos[i] = 0.0;
-    }
-    move_group->setJointValueTarget(zero_pos);
-    move_group->move();
-    usleep(2000);
-    move_group->setNamedTarget("home");
-    move_group->move();
+    // std::vector<double> zero_pos;
+    // zero_pos.resize(6);
+    // for (int i=0; i<6; i++){
+    //     zero_pos[i] = 0.0;
+    // }
+    // move_group->setJointValueTarget(zero_pos);
+    // move_group->move();
+    // usleep(2000);
+    // move_group->setNamedTarget("home");
+    // move_group->move();
 
 	boost::shared_ptr<tf::TransformListener> tf_listener;
     // init tf listener
@@ -189,23 +190,54 @@ int main(int argc, char** argv)
         ROS_ERROR("tf listener: transform exception : %s",ex.what());
     }
 
-    geometry_msgs::PoseStamped current_pose = move_group->getCurrentPose();
-    ROS_INFO_STREAM(current_pose);
-
-    moveit::planning_interface::MoveGroupInterface::Plan my_plan;
-    bool success;
-    ros::Rate loop_rate(1);
     tf::StampedTransform transform_tf;
-    geometry_msgs::Pose target_pose;
+    try{
+        tf_listener->waitForTransform("base_link", "tool0", ros::Time(0), ros::Duration(0.2));
+        tf_listener->lookupTransform("base_link", "tool0", ros::Time(0), transform_tf);
+    }
+    catch(tf::TransformException &ex){
+        ROS_ERROR("tf listener: transform exception : %s",ex.what());
+    }
 
-    move_group->setPositionTarget(-0.112022, 0.29858, 0.312805);
-    move_group->setOrientationTarget(0.00408287, 0.999436, -0.0307424, -0.0128436);
-    success = (move_group->plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-    ROS_INFO("Start point %s", success ? "" : "FAILED");
-    move_group->execute(my_plan);
+    geometry_msgs::TransformStamped pose;
+    tf::transformStampedTFToMsg(transform_tf, pose);
+
+    ROS_INFO_STREAM(pose);
+
+
+    // geometry_msgs::PoseStamped current_pose = move_group->getCurrentPose();
+    // ROS_INFO_STREAM(current_pose);
+    // tf::Quaternion qua;
+    // tf::quaternionMsgToTF(current_pose.pose.orientation, qua);
+    // tf::Matrix3x3 matrix1(qua);
+    // ROS_INFO_STREAM(matrix1[0][0]<<" "<<matrix1[0][1]<<" "<<matrix1[0][2]);
+    // ROS_INFO_STREAM(matrix1[1][0]<<" "<<matrix1[1][1]<<" "<<matrix1[1][2]);
+    // ROS_INFO_STREAM(matrix1[2][0]<<" "<<matrix1[2][1]<<" "<<matrix1[2][2]);
+
+    // ros::shutdown();
+
+    // moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+    // bool success;
+    // // tf::StampedTransform transform_tf;
+    // geometry_msgs::Pose target_pose;
+    // target_pose.position.x = 0.324388;
+    // target_pose.position.y = -0.0266423;
+    // target_pose.position.z = 0.388319;
+    // target_pose.orientation.x = -0.820758;
+    // target_pose.orientation.y = 0.437589;
+    // target_pose.orientation.z = 0.0736749;
+    // target_pose.orientation.w = 0.359784;
+    // move_group->setPoseTarget(target_pose);
+
+    // // move_group->setPositionTarget(0.324388, -0.0266423, 0.388319);
+    // // move_group->setOrientationTarget(-0.820758, 0.437589, 0.0736749, 0.359784);
+    // success = (move_group->plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+    // ROS_INFO("Start point %s", success ? "" : "FAILED");
+    // move_group->execute(my_plan);
     
 
     /*
+    ros::Rate loop_rate(1);
     while(ros::ok()){
         
         // try{

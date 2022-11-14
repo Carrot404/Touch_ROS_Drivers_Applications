@@ -62,6 +62,7 @@ private:
     ros::Publisher joint_pub_;
     ros::Publisher poseref_pub_;
     // ros::Publisher pose_pub_;
+    ros::Publisher twist_pub_;
 
 
     // ros::Publisher state_pub_;
@@ -72,7 +73,7 @@ private:
 
 
     TouchState *state_;
-	// boost::shared_ptr<tf::TransformListener> tf_listener_;
+	boost::shared_ptr<tf::TransformListener> tf_listener_;
 
 public:
     // Constructor and destructor
@@ -117,13 +118,19 @@ PhantomROS::PhantomROS(ros::NodeHandle nh, TouchState *state) : nh_(nh), priv_nh
     /* std::string pose_topic = touch_name_+"/pose";
     pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>(pose_topic.c_str(), 1); */
 
-    /* tf_listener_ = boost::shared_ptr<tf::TransformListener>(new tf::TransformListener());
+    // Publish pose on NAMESPACE/twist based on desired frame
+    // base_frame: base
+    // target_frame: probe
+    std::string twist_topic = touch_name_+"/twist";
+    twist_pub_ = nh_.advertise<geometry_msgs::TwistStamped>(twist_topic.c_str(), 1);  
+
+    tf_listener_ = boost::shared_ptr<tf::TransformListener>(new tf::TransformListener());
     try{
         tf_listener_->waitForTransform("base", "stylus", ros::Time(0), ros::Duration(2));
     }
     catch(tf::TransformException &ex){
         ROS_ERROR("tf listener: transform exception : %s",ex.what());
-    } */
+    }
 
     // TouchState Init
     // state_ = boost::shared_ptr<TouchState>(new TouchState());
@@ -141,6 +148,7 @@ PhantomROS::PhantomROS(ros::NodeHandle nh, TouchState *state) : nh_(nh), priv_nh
     state_->orientation = hduqua;
     state_->linear_velocity = hduzeros;
     state_->angular_velocity = hduzeros;
+
     state_->cartesian_force = hduzeros;
 }
 
@@ -217,24 +225,30 @@ void PhantomROS::publish_touch_state()
     tf::quaternionTFToMsg(quat_tf, pose_msg.pose.orientation);
     pose_pub_.publish(pose_msg); */
 
+    // Twist publisher
+    // tf::StampedTransform transform_tf;
+    // try{
+    //     tf_listener_->waitForTransform("base", "probe", ros::Time(0), ros::Duration(0.5));
+    //     tf_listener_->lookupTransform("base", "probe", ros::Time(0), transform_tf);
+    // }
+    // catch(tf::TransformException &ex){
+    //     ROS_ERROR("tf listener: transform exception : %s",ex.what());
+    //     return;
+    // }
+    // tf::Quaternion quat_tf =  transform_tf.getRotation();
+    // tf::Point vec_tf = transform_tf.getOrigin();
+    geometry_msgs::TwistStamped twist_msg;
+    twist_msg.header.frame_id = "base";
+    twist_msg.header.stamp = joint_msg.header.stamp;
+    twist_msg.twist.linear.x = state_->linear_velocity[0];
+    twist_msg.twist.linear.y = state_->linear_velocity[1];
+    twist_msg.twist.linear.z = state_->linear_velocity[2];
+    twist_msg.twist.angular.x = state_->angular_velocity[0];
+    twist_msg.twist.angular.y = state_->angular_velocity[1];
+    twist_msg.twist.angular.z = state_->angular_velocity[2];
+    twist_pub_.publish(twist_msg);
 
 
-
-
-
-
-
-
-
-    
-
-
-    
-
-
-
-
-    
 }
 
 // HDCallbackCode HDCALLBACK touch_state_callback(void *pUserData)
@@ -254,13 +268,17 @@ HDCallbackCode touch_state_callback(void *pUserData)
     touch_state->buttons[0] = (nButtons & HD_DEVICE_BUTTON_1) ? 1 : 0;
     touch_state->buttons[1] = (nButtons & HD_DEVICE_BUTTON_2) ? 1 : 0;
 
-    hdGetDoublev(HD_CURRENT_JOINT_ANGLES, touch_state->joint_angles);
-    hdGetDoublev(HD_CURRENT_GIMBAL_ANGLES, touch_state->gimbal_angles);
+    // hdGetDoublev(HD_CURRENT_JOINT_ANGLES, touch_state->joint_angles);
+    // hdGetDoublev(HD_CURRENT_GIMBAL_ANGLES, touch_state->gimbal_angles);
 
-    hdGetDoublev(HD_CURRENT_POSITION, touch_state->position);
-    hduMatrix transform_ref;
-    hdGetDoublev(HD_CURRENT_TRANSFORM, transform_ref);
-    transform_ref.getRotation(touch_state->orientation);
+    // hdGetDoublev(HD_CURRENT_POSITION, touch_state->position);
+    // hduMatrix transform_ref;
+    // hdGetDoublev(HD_CURRENT_TRANSFORM, transform_ref);
+    // transform_ref.getRotation(touch_state->orientation);
+
+    hdGetDoublev(HD_CURRENT_VELOCITY, touch_state->linear_velocity);
+    // TODO: can not read HD_CURRENT_ANGULAR_VELOCITY
+    hdGetDoublev(HD_CURRENT_ANGULAR_VELOCITY, touch_state->angular_velocity);
 
     hdEndFrame(hdGetCurrentDevice());
     /* *********************************************** */
