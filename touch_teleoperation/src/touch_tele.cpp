@@ -13,6 +13,8 @@
 
 #include <touch_msgs/TouchButtonEvent.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/TwistStamped.h>
+
 
 #include <boost/shared_ptr.hpp>
 
@@ -23,15 +25,21 @@ private:
     ros::NodeHandle nh_;
     ros::NodeHandle priv_nh_;
     
-    ros::Subscriber poseref_sub_;
     ros::Subscriber button_sub_;
+    ros::Subscriber poseref_sub_;
+    ros::Subscriber twist_sub_;
+
 
     std::string touch_name_;
 
     std::vector<double> position_;
     std::vector<double> position_prev_;
 
+    std::vector<double> velocity_;
+    std::vector<double> position_prev_;
+
     int count_;
+    bool teleIsActive_;
 
     ros::AsyncSpinner *spinner;
 	// boost::shared_ptr<tf::TransformListener> tf_listener_;
@@ -49,6 +57,7 @@ public:
     // Topic Callback function
     void buttonCallback(const touch_msgs::TouchButtonEvent::ConstPtr &msg);
     void poserefCallback(const geometry_msgs::PoseStamped::ConstPtr &msg);
+    void twistCallback(const geometry_msgs::TwistStamped::ConstPtr &msg);
 
 
 
@@ -69,6 +78,10 @@ TouchTele::TouchTele(ros::NodeHandle nh) : nh_(nh), priv_nh_("~")
     std::string poseref_topic = touch_name_+"/pose_ref";
     poseref_sub_ = nh_.subscribe(poseref_topic, 5, &TouchTele::poserefCallback, this);
 
+    // Subscribe to NameSpace/twist
+    std::string twist_topic = touch_name_+"/twist";
+    twist_sub_ = nh_.subscribe(twist_topic, 5, &TouchTele::twistCallback, this);
+
     // init move_group
     // move_group_ = boost::shared_ptr<moveit::planning_interface::MoveGroupInterface>(new moveit::planning_interface::MoveGroupInterface("manipulator"));
     // ROS_INFO("Planning frame: %s", move_group_->getPlanningFrame().c_str());
@@ -88,7 +101,7 @@ TouchTele::TouchTele(ros::NodeHandle nh) : nh_(nh), priv_nh_("~")
     // }
 
     // init ROS Spinner
-    spinner = new ros::AsyncSpinner(2);
+    spinner = new ros::AsyncSpinner(4);
     spinner->start();
 
     position_.resize(3);
@@ -100,6 +113,7 @@ TouchTele::TouchTele(ros::NodeHandle nh) : nh_(nh), priv_nh_("~")
         target_delta_[i] = 0.0;
     }
     count_ = 0;
+    teleIsActive_ = false;
 
 }
 
@@ -110,7 +124,12 @@ TouchTele::~TouchTele()
 
 void TouchTele::buttonCallback(const touch_msgs::TouchButtonEvent::ConstPtr &msg)
 {
-
+    if (msg->grey_button == 1){
+        teleIsActive_ = true;
+    }
+    if (msg->grey_button == 0){
+        teleIsActive_ = false;
+    }
 }
 
 void TouchTele::poserefCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)
@@ -143,6 +162,11 @@ void TouchTele::poserefCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)
         }
         count_ = 0;
     }
+}
+
+void TouchTele::twistCallback(const geometry_msgs::TwistStamped::ConstPtr &msg)
+{
+
 }
 
 int main(int argc, char** argv)
