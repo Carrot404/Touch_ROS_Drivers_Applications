@@ -36,7 +36,7 @@ private:
     std::vector<double> position_prev_;
 
     std::vector<double> velocity_;
-    std::vector<double> position_prev_;
+    std::vector<double> velocity_prev_;
 
     int count_;
     bool teleIsActive_;

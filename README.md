@@ -23,6 +23,7 @@ sudo cp bin/Touch* /usr/local/bin
 sudo cp usr/lib/libPhantomIOLib42.so /usr/lib
 # Create and configure shared directory for configuration files
 sudo mkdir -p /usr/share/3DSystems/config
+sudo chmod 777 config
 # Create profile.d configurationfile
 echo "export GTDD_HOME=/usr/share/3DSystems" > 3ds-touch-drivers.sh
 sudo cp 3ds-touch-drivers.sh /etc/profile.d/3ds-touch-drivers.sh
@@ -90,4 +91,10 @@ robot home pose:
 position: [-0.112022, 0.29858, 0.312805]
 
 orientation: [0.999996 -0.000809807 0.0027472 0.000655318] 
+
+Geomagic.hpp:  not a class  two touch  compute angular velocity
+
+
+
+
 
