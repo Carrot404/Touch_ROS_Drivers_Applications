@@ -8,11 +8,13 @@
 #ifndef GEOMAGICPROXY_HPP_
 #define GEOMAGICPROXY_HPP_
 
-// #include <conio.h>
+#include <vector>
+
 #include <HD/hd.h>
 #include <HDU/hduError.h>
 #include <HDU/hduMatrix.h>
 #include <HDU/hduVector.h>
+#include <HDU/hduQuaternion.h>
 
 //Project Header files
 #include "Timer.hpp"
@@ -40,55 +42,80 @@ enum PRESSED_BUTTONS { NO_PRESSED, PRESSED_LOW, PRESSED_HIGH, PRESSED_BOTH };
 
 struct HDUtilityData {
 
-	hduVector3Dd prvPos;
-	hduVector3Dd lstPos;
+	// linear history position/velocity
+	hduVector3Dd prvPos;               //!< previous position
+	hduVector3Dd lstPos;               //!< pre-previous position
 
-	hduVector3Dd prvAng;
-	hduVector3Dd lstAng;
+	hduVector3Dd prvInputVel;          //!< previous input linear velocity
+	hduVector3Dd lstInputVel;          //!< pre-previous input linear velocity
+	hduVector3Dd vrLstInputVel;        //!< pre-pre-previous input linearvelocity
+	hduVector3Dd prvOutVel;            //!< previous output linear velocity
+	hduVector3Dd lstOutVel;            //!< pre-previous output linear velocity
+	hduVector3Dd vrLstOutVel;          //!< pre-pre-previous output linear velocity
 
-	hduVector3Dd prvInputVel;
-	hduVector3Dd lstInputVel;
-	hduVector3Dd vrLstInputVel;
-	hduVector3Dd prvOutVel;
-	hduVector3Dd lstOutVel;
-	hduVector3Dd vrLstOutVel;
+	hduVector3Dd lvelocity;            //!< linear velocity
+	hduVector3Dd lvelocityTemp;        //!< temp linear velocity
 
-	hduVector3Dd prvInputAngVel;
-	hduVector3Dd lstInputAngVel;
-	hduVector3Dd vrLstInputAngVel;
-	hduVector3Dd prvOutAngVel;
-	hduVector3Dd lstOutAngVel;
-	hduVector3Dd vrLstOutAngVel;
+	// history pos joint value/velocity
+	hduVector3Dd prvAng0;              //!< previous position angles
+	hduVector3Dd lstAng0;              //!< pre-previous position angles
 
-	hduVector3Dd lvelocity;
-	hduVector3Dd lvelocityTemp;
+	hduVector3Dd prvInputAngVel0;       //!< previous position input velocity
+	hduVector3Dd lstInputAngVel0;       //!< pre-previous position input velocity
+	hduVector3Dd vrLstInputAngVel0;     //!< pre-pre-previous position input velocity
+	hduVector3Dd prvOutAngVel0;         //!< previous position output velocity
+	hduVector3Dd lstOutAngVel0;         //!< pre-previous position output velocity
+	hduVector3Dd vrLstOutAngVel0;       //!< pre-pre-previous position output velocity
 
-	hduVector3Dd avelocity;
-	hduVector3Dd avelocityTemp;
+	hduVector3Dd avelocity0;            //!< position velocity
+	hduVector3Dd avelocityTemp0;        //!< temp position velocity
 
-	HDdouble jointPosPrev[GEOMAGIC_HAPTIC_JOINTS];
+	// history gimbal joint value/velocity
+	hduVector3Dd prvAng;               //!< previous gimbal angles
+	hduVector3Dd lstAng;               //!< pre-previous gimbal angles
+
+	hduVector3Dd prvInputAngVel;       //!< previous gimbal input velocity
+	hduVector3Dd lstInputAngVel;       //!< pre-previous gimbal input velocity
+	hduVector3Dd vrLstInputAngVel;     //!< pre-pre-previous gimbal input velocity
+	hduVector3Dd prvOutAngVel;         //!< previous gimbal output velocity
+	hduVector3Dd lstOutAngVel;         //!< pre-previous gimbal output velocity
+	hduVector3Dd vrLstOutAngVel;       //!< pre-pre-previous gimbal output velocity
+
+	hduVector3Dd avelocity;            //!< gimbal velocity
+	hduVector3Dd avelocityTemp;        //!< temp gimbal velocity
+
+	// HDdouble jointPosPrev[GEOMAGIC_HAPTIC_JOINTS];
 
 };
 
 
 struct GeomagicStatus {
 
+	/* Cartesian space values */      
 	hduVector3Dd stylusPosition;									//!< Position vector of the styus HIP (Haptic Interface Point) of the Geomagic device
-	hduVector3Dd stylusGimbalAngles;								//!< Orientation vector containing the gimbal angles of the stylus of the Geomagic device
-
+	hduQuaternion stylusOrientation;                                //!< Orientation vector of the styus HIP (Haptic Interface Point) of the Geomagic device
 	hduVector3Dd stylusLinearVelocity;								//!< Linear velocity vector of the styus HIP (Haptic Interface Point) of the Geomagic device
 	hduVector3Dd stylusAngularVelocity;								//!< Angular velocity vector of the styus HIP (Haptic Interface Point) of the Geomagic device
+	hduVector3Dd stylusLinearVelocity2;		// ExampleTest			//!< Linear velocity vector of the styus HIP (Haptic Interface Point) of the Geomagic device
+	hduVector3Dd stylusLinearVelocityjac;		// ExampleTest			//!< Linear velocity vector of the styus HIP (Haptic Interface Point) of the Geomagic device
+	hduVector3Dd stylusAngularVelocityjac;		// ExampleTest			//!< Linear velocity vector of the styus HIP (Haptic Interface Point) of the Geomagic device
+	double jacobian[SPACE_DIM * 2 * GEOMAGIC_HAPTIC_JOINTS];		//!< Vectorized Jacobian matrix (TODO:in which order it is stored?)
+	
+	/* Joint space values */
+	hduVector3Dd PosAngles;                                         //!< first three joint angles of the stylus of the Geomagic device
+	hduVector3Dd GimbalAngles;							        	//!< last three gimbal angles of the stylus of the Geomagic device
+	hduVector3Dd PosAnglesVel;                                      //!< velocity of first three joint angles
+	hduVector3Dd GimbalAnglesVel;                                   //!< velocity of last three gimbal joint angles
 	hduVector3Dd force;												//!< Force vector of the Geomagic device
-
-	double jointPosition[GEOMAGIC_HAPTIC_JOINTS];					//!< Array of Geomagic joint positions
+	double jointPosition[GEOMAGIC_HAPTIC_JOINTS];				    //!< Array of Geomagic joint positions
 	double jointVelocity[GEOMAGIC_HAPTIC_JOINTS];					//!< Array of Geomagic joint velocity
-	double jacobian[SPACE_DIM * 2 * GEOMAGIC_HAPTIC_JOINTS];			//!< Vectorized Jacobian matrix (in which order it is stored?)//*/
 
+	/* Button state */
 	int stylusButtons;												//!< Status of the buttons on the Geomagic stylus
-	bool action[GEOMAGIC_BUTTONS_NUM];								//!< Static array of boolean values stating if each button has been pressed (true on the raising edge of the event)
-	bool evHoldButton[GEOMAGIC_BUTTONS_NUM];						//!< Static array of boolean values stating if each button has been pressed (true on the raising edge of the event)
-	bool evRaiseEdge[GEOMAGIC_BUTTONS_NUM];							//!< Static array of boolean values stating if each button has been pressed (true on the raising edge of the event)
-	bool evTrailEdge[GEOMAGIC_BUTTONS_NUM];							//!< Static array of boolean values stating if each button has been pressed (true on the raising edge of the event)
+	bool action[GEOMAGIC_BUTTONS_NUM];								//!< Raise + Trail action 
+	bool evHoldButton[GEOMAGIC_BUTTONS_NUM];						//!< button state
+	bool evRaiseEdge[GEOMAGIC_BUTTONS_NUM];							//!< Raise action from unpressed to pressed
+	bool evTrailEdge[GEOMAGIC_BUTTONS_NUM];							//!< Trail action from pressed to unpressed
 };
 
 /**
@@ -127,18 +154,13 @@ public:
 	* @brief Default contructor of GeomagicProxy class
 	*
 	*/
-	GeomagicProxy();
+	GeomagicProxy(GeomagicStatus* state);
 
 	/**
 	* @brief Default destroyer of GeomagicProxy class
 	*
 	*/
 	~GeomagicProxy();
-
-	/**
-	* @brief deprecated Default init function
-	*/
-	// void init();
 
 	/**
 	* @brief Default run function
@@ -158,11 +180,11 @@ public:
 	void updateVelocities();
 
 	/**
-	* @brief deprecated Calibrate function
-	* Calibrate the Geomagic device
-	* @return true if the device has been successfully calibrated
+	* @brief Update function
+	* Update the Joint Velocity of the Geomagic stylus
+	* Set internally jointVelocity
 	*/
-	// bool calibrate();
+	void updateJointVelocities();
 
 	/**
 	* @brief New Calibration function 
@@ -272,12 +294,6 @@ public:
 
 	}
 
-	GeomagicStatus* getState() {
-		return (&geoStatus);
-	}
-
-
-
 	/**
 	* @brief Check function
 	* Check if the external system is available
@@ -315,15 +331,15 @@ private:
 	HHD dvcHandle;								//!< OpenHaptics device handler
 	HDSchedulerHandle schHandle;				//!< OpenHaptics scheduler handler
 
-	GeomagicStatus geoStatus;					//!< Structure containing the main quantities defining the state of the haptic device (see above)
+	GeomagicStatus* geoStatus;					//!< Structure containing the main quantities defining the state of the haptic device (see above)
 	HDUtilityData hdUtils;						//!< Structure containing some utility variables necessary to process linear and angular velocities
 
 	bool available;						//!< Flag stating if the external system is available
 	bool running;						//!< Flag stating if the main loop of the system is running
+	
 	// boost::thread proxy_thread;
 
 	// std::string logPath;
-
 	// Geomagic stringstream
 	// std::stringstream leftHipBaseVelSS;		//!< 6D Velocity of the left hip with respect to the base frame of the left geomagic
 	// std::stringstream rightHipBaseVelSS;	//!< 6D Velocity of the right hip with respect to the base frame of the right geomagic

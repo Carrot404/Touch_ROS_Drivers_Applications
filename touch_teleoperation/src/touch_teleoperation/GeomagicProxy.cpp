@@ -12,7 +12,7 @@
 * @brief Default contructor of GeomagicProxy class
 *
 */
-GeomagicProxy::GeomagicProxy() {
+GeomagicProxy::GeomagicProxy(GeomagicStatus* state) {
 
 	// Geomagic stringstream
 	// leftHipBaseVelSS.str("");		//!< 6D Velocity of the left hip with respect to the base frame of the left geomagic
@@ -43,51 +43,85 @@ GeomagicProxy::GeomagicProxy() {
 	// rightTrailingClutchEdgeSS.str("");
 	// leftTriggerClutchButtonSS.str("");
 	// rightTriggerClutchButtonSS.str("");
-
 	// Initialize all the structures to zero
-	this->geoStatus.stylusPosition.set(0.0, 0.0, 0.0);
-	this->geoStatus.stylusGimbalAngles.set(0.0, 0.0, 0.0);
-	this->geoStatus.stylusLinearVelocity.set(0.0, 0.0, 0.0);
-	this->geoStatus.stylusAngularVelocity.set(0.0, 0.0, 0.0);
-	this->geoStatus.force.set(0.0, 0.0, 0.0);
+
+	geoStatus = state;
+	/* Cartesian space values */      
+	this->geoStatus->stylusPosition.set(0.0, 0.0, 0.0);
+	this->geoStatus->stylusOrientation = hduQuaternion(1.0, hduVector3Dd(0.0, 0.0, 0.0));
+	this->geoStatus->stylusLinearVelocity.set(0.0, 0.0, 0.0);
+	this->geoStatus->stylusAngularVelocity.set(0.0, 0.0, 0.0);
+	std::memset(this->geoStatus->jacobian, 0.0, sizeof(double) * (SPACE_DIM * 2) * GEOMAGIC_HAPTIC_JOINTS);
+
+	// Test
+	this->geoStatus->stylusLinearVelocity2.set(0.0, 0.0, 0.0);
+	this->geoStatus->stylusLinearVelocityjac.set(0.0, 0.0, 0.0);
+	this->geoStatus->stylusAngularVelocityjac.set(0.0, 0.0, 0.0);
+
+
+	/* Joint space values */
+	this->geoStatus->PosAngles.set(0.0, 0.0, 0.0);
+	this->geoStatus->GimbalAngles.set(0.0, 0.0, 0.0);
+	this->geoStatus->force.set(0.0, 0.0, 0.0);
+	std::memset(this->geoStatus->jointPosition, 0.0, sizeof(double) * GEOMAGIC_HAPTIC_JOINTS);
+	std::memset(this->geoStatus->jointVelocity, 0.0, sizeof(double) * GEOMAGIC_HAPTIC_JOINTS);
 
 	// Initialize variables related to the buttons state
-	this->geoStatus.stylusButtons = 0;
-	this->geoStatus.action[GEOMAGIC_LOW_BUTTON] = false;
-	this->geoStatus.action[GEOMAGIC_HIGH_BUTTON] = false;
-	this->geoStatus.evHoldButton[GEOMAGIC_LOW_BUTTON] = false;
-	this->geoStatus.evHoldButton[GEOMAGIC_HIGH_BUTTON] = false;
-	this->geoStatus.evRaiseEdge[GEOMAGIC_LOW_BUTTON] = false;
-	this->geoStatus.evRaiseEdge[GEOMAGIC_HIGH_BUTTON] = false;
-	this->geoStatus.evTrailEdge[GEOMAGIC_LOW_BUTTON] = false;
-	this->geoStatus.evTrailEdge[GEOMAGIC_HIGH_BUTTON] = false;
-	std::memset(this->geoStatus.jointPosition, 0.0, sizeof(double) * GEOMAGIC_HAPTIC_JOINTS);
-	std::memset(this->geoStatus.jointVelocity, 0.0, sizeof(double) * GEOMAGIC_HAPTIC_JOINTS);
-	std::memset(this->geoStatus.jacobian, 0.0, sizeof(double) * (SPACE_DIM * 2) * GEOMAGIC_HAPTIC_JOINTS);
+	this->geoStatus->stylusButtons = 0;
+	this->geoStatus->action[GEOMAGIC_LOW_BUTTON] = false;
+	this->geoStatus->action[GEOMAGIC_HIGH_BUTTON] = false;
+	this->geoStatus->evHoldButton[GEOMAGIC_LOW_BUTTON] = false;
+	this->geoStatus->evHoldButton[GEOMAGIC_HIGH_BUTTON] = false;
+	this->geoStatus->evRaiseEdge[GEOMAGIC_LOW_BUTTON] = false;
+	this->geoStatus->evRaiseEdge[GEOMAGIC_HIGH_BUTTON] = false;
+	this->geoStatus->evTrailEdge[GEOMAGIC_LOW_BUTTON] = false;
+	this->geoStatus->evTrailEdge[GEOMAGIC_HIGH_BUTTON] = false;
 
 
 	// Utility data
+	// linear history position/velocity
 	this->hdUtils.prvPos.set(0.0, 0.0, 0.0);
 	this->hdUtils.lstPos.set(0.0, 0.0, 0.0);
-	this->hdUtils.prvAng.set(0.0, 0.0, 0.0);
-	this->hdUtils.lstAng.set(0.0, 0.0, 0.0);
+
 	this->hdUtils.prvInputVel.set(0.0, 0.0, 0.0);
 	this->hdUtils.lstInputVel.set(0.0, 0.0, 0.0);
 	this->hdUtils.vrLstInputVel.set(0.0, 0.0, 0.0);
 	this->hdUtils.prvOutVel.set(0.0, 0.0, 0.0);
 	this->hdUtils.lstOutVel.set(0.0, 0.0, 0.0);
 	this->hdUtils.vrLstOutVel.set(0.0, 0.0, 0.0);
+
+	this->hdUtils.lvelocity.set(0.0, 0.0, 0.0);
+	this->hdUtils.lvelocityTemp.set(0.0, 0.0, 0.0);
+
+	// history pos joint value/velocity
+	this->hdUtils.prvAng.set(0.0, 0.0, 0.0);
+	this->hdUtils.lstAng.set(0.0, 0.0, 0.0);
+
 	this->hdUtils.prvInputAngVel.set(0.0, 0.0, 0.0);
 	this->hdUtils.lstInputAngVel.set(0.0, 0.0, 0.0);
 	this->hdUtils.vrLstInputAngVel.set(0.0, 0.0, 0.0);
 	this->hdUtils.prvOutAngVel.set(0.0, 0.0, 0.0);
 	this->hdUtils.lstOutAngVel.set(0.0, 0.0, 0.0);
 	this->hdUtils.vrLstOutAngVel.set(0.0, 0.0, 0.0);
-	this->hdUtils.lvelocity.set(0.0, 0.0, 0.0);
-	this->hdUtils.lvelocityTemp.set(0.0, 0.0, 0.0);
+
 	this->hdUtils.avelocity.set(0.0, 0.0, 0.0);
 	this->hdUtils.avelocityTemp.set(0.0, 0.0, 0.0);
-	std::memset(this->hdUtils.jointPosPrev, 0.0, sizeof(double) * GEOMAGIC_HAPTIC_JOINTS);
+
+	// history gimbal joint value/velocity
+	this->hdUtils.prvAng0.set(0.0, 0.0, 0.0);
+	this->hdUtils.lstAng0.set(0.0, 0.0, 0.0);
+
+	this->hdUtils.prvInputAngVel0.set(0.0, 0.0, 0.0);
+	this->hdUtils.lstInputAngVel0.set(0.0, 0.0, 0.0);
+	this->hdUtils.vrLstInputAngVel0.set(0.0, 0.0, 0.0);
+	this->hdUtils.prvOutAngVel0.set(0.0, 0.0, 0.0);
+	this->hdUtils.lstOutAngVel0.set(0.0, 0.0, 0.0);
+	this->hdUtils.vrLstOutAngVel0.set(0.0, 0.0, 0.0);
+
+	this->hdUtils.avelocity0.set(0.0, 0.0, 0.0);
+	this->hdUtils.avelocityTemp0.set(0.0, 0.0, 0.0);
+
+	// std::memset(this->hdUtils.jointPosPrev, 0.0, sizeof(double) * GEOMAGIC_HAPTIC_JOINTS);
 
 	this->availability(true);
 
@@ -97,88 +131,6 @@ GeomagicProxy::GeomagicProxy() {
 * @brief Default destroyer of GeomagicProxy class
 */
 GeomagicProxy::~GeomagicProxy() {}
-
-
-/**
-* @brief deprecated Default init function
-*/
-/* void GeomagicProxy::init() {
-
-	// Debug print
-	// Because of the inner working conditions of the haptic device and its OpenHaptics SDK,
-	// this init() function here cannot initialize the device, because the main loop execution
-	// occurs in an another thread. It seems that initialization, utilization and clear of the device
-	// has to occur in the same thread. Therefore this function, that is called by Scheduler in the main thread,
-	// loses its use, and it should just initialize local structures, but not the device.
-	// Device initialization and clear and then left to the same function of the main loop (i.e. before and after
-	// the while() loop).
-
-	 // Initialize all the structures to zero
-	this->geoStatus.stylusPosition.set(0.0, 0.0, 0.0);
-	this->geoStatus.stylusGimbalAngles.set(0.0, 0.0, 0.0);
-	this->geoStatus.stylusLinearVelocity.set(0.0, 0.0, 0.0);
-	this->geoStatus.stylusAngularVelocity.set(0.0, 0.0, 0.0);
-	this->geoStatus.force.set(0.0, 0.0, 0.0);
-
-	// Initialize variables related to the buttons state
-	this->geoStatus.stylusButtons = 0;
-	this->geoStatus.action[GEOMAGIC_LOW_BUTTON] = false;
-	this->geoStatus.action[GEOMAGIC_HIGH_BUTTON] = false;
-	this->geoStatus.evHoldButton[GEOMAGIC_LOW_BUTTON] = false;
-	this->geoStatus.evHoldButton[GEOMAGIC_HIGH_BUTTON] = false;
-	this->geoStatus.evRaiseEdge[GEOMAGIC_LOW_BUTTON] = false;
-	this->geoStatus.evRaiseEdge[GEOMAGIC_HIGH_BUTTON] = false;
-	this->geoStatus.evTrailEdge[GEOMAGIC_LOW_BUTTON] = false;
-	this->geoStatus.evTrailEdge[GEOMAGIC_HIGH_BUTTON] = false;
-	std::memset(this->geoStatus.jointPosition, 0.0, sizeof(double) * GEOMAGIC_HAPTIC_JOINTS);
-	std::memset(this->geoStatus.jointVelocity, 0.0, sizeof(double) * GEOMAGIC_HAPTIC_JOINTS);
-	std::memset(this->geoStatus.jacobian, 0.0, sizeof(double) * (SPACE_DIM * 2) * GEOMAGIC_HAPTIC_JOINTS);
-
-
-	// Utility data
-	this->hdUtils.prvPos.set(0.0, 0.0, 0.0);
-	this->hdUtils.lstPos.set(0.0, 0.0, 0.0);
-	this->hdUtils.prvAng.set(0.0, 0.0, 0.0);
-	this->hdUtils.lstAng.set(0.0, 0.0, 0.0);
-	this->hdUtils.prvInputVel.set(0.0, 0.0, 0.0);
-	this->hdUtils.lstInputVel.set(0.0, 0.0, 0.0);
-	this->hdUtils.vrLstInputVel.set(0.0, 0.0, 0.0);
-	this->hdUtils.prvOutVel.set(0.0, 0.0, 0.0);
-	this->hdUtils.lstOutVel.set(0.0, 0.0, 0.0);
-	this->hdUtils.vrLstOutVel.set(0.0, 0.0, 0.0);
-	this->hdUtils.prvInputAngVel.set(0.0, 0.0, 0.0);
-	this->hdUtils.lstInputAngVel.set(0.0, 0.0, 0.0);
-	this->hdUtils.vrLstInputAngVel.set(0.0, 0.0, 0.0);
-	this->hdUtils.prvOutAngVel.set(0.0, 0.0, 0.0);
-	this->hdUtils.lstOutAngVel.set(0.0, 0.0, 0.0);
-	this->hdUtils.vrLstOutAngVel.set(0.0, 0.0, 0.0);
-	this->hdUtils.lvelocity.set(0.0, 0.0, 0.0);
-	this->hdUtils.lvelocityTemp.set(0.0, 0.0, 0.0);
-	this->hdUtils.avelocity.set(0.0, 0.0, 0.0);
-	this->hdUtils.avelocityTemp.set(0.0, 0.0, 0.0);
-	std::memset(this->hdUtils.jointPosPrev, 0.0, sizeof(double) * GEOMAGIC_HAPTIC_JOINTS);
-
-	this->availability(true);
-} */
-
-/**
-* @brief deprecated Calibrate function
-* Calibrate the Geomagic device
-* @return true if the device has been successfully calibrated
-*/
-/* bool GeomagicProxy::calibrate() {
-	int calibrationStyle;
-	if (hdCheckCalibration() == HD_CALIBRATION_NEEDS_UPDATE) {
-		hdGetIntegerv(HD_CALIBRATION_STYLE, &calibrationStyle);
-		if (calibrationStyle & HD_CALIBRATION_AUTO || calibrationStyle & HD_CALIBRATION_INKWELL) {
-			std::cout << "Please prepare for starting the demo by\nplacing the device at its reset position.\n" << std::endl;
-			while (hdCheckCalibration() != HD_CALIBRATION_OK) {}
-			return false;
-		}
-		return true;
-	}
-	return true;
-} */
 
 /**
 * @brief New Calibration function 
@@ -304,7 +256,6 @@ void GeomagicProxy::run() {
 		//----------------------------------------------------------------//
 		// Do stuff here... 
 
-
 		while (!hdWaitForCompletion(schHandle, HD_WAIT_CHECK_STATUS));
 		hdScheduleSynchronous(updateGeoStateCallback, this, HD_DEFAULT_SCHEDULER_PRIORITY);
 
@@ -343,9 +294,11 @@ HDCallbackCode updateGeoStateCallback(void* data) {
 	GeomagicProxy* device = (GeomagicProxy*)data;
 	Eigen::Matrix<double, (SPACE_DIM * 2), GEOMAGIC_HAPTIC_JOINTS> J;
 	Eigen::Matrix<double, (SPACE_DIM * 2), 1> vel;
-	Eigen::Matrix<double, GEOMAGIC_HAPTIC_JOINTS, 1> q, qdot, qprev;
+	Eigen::Matrix<double, GEOMAGIC_HAPTIC_JOINTS, 1> qdot;
 	bool curButton[GEOMAGIC_BUTTONS_NUM];
 	double hdrate;
+
+    hduMatrix transform_ref;
 
 	HDErrorInfo error;
 	if (HD_DEVICE_ERROR(error = hdGetError())) {
@@ -354,51 +307,74 @@ HDCallbackCode updateGeoStateCallback(void* data) {
 			return HD_CALLBACK_DONE;
 	}
 	else {
-
-		// Get data from the device
-		hdGetDoublev(HD_CURRENT_POSITION, device->geoStatus.stylusPosition);
-		hdGetDoublev(HD_CURRENT_GIMBAL_ANGLES, device->geoStatus.stylusGimbalAngles);
-		hdGetDoublev(HD_CURRENT_JACOBIAN, device->geoStatus.jacobian);
-		hdGetDoublev(HD_CURRENT_JOINT_ANGLES, device->geoStatus.jointPosition);
+		// hdrate varies with time 700-900
 		hdGetDoublev(HD_UPDATE_RATE, &hdrate);
 
+		// Joint space values
+		hdGetDoublev(HD_CURRENT_JOINT_ANGLES, device->geoStatus->PosAngles);
+		hdGetDoublev(HD_CURRENT_GIMBAL_ANGLES, device->geoStatus->GimbalAngles);
+		for (int i=0; i<3; i++){
+			device->geoStatus->jointPosition[i] = device->geoStatus->PosAngles[i];
+			device->geoStatus->jointPosition[i+3] = device->geoStatus->GimbalAngles[i];
+		}
+		//update joint velocity vector
+		device->updateJointVelocities();
+		for (int i=0; i<3; i++){
+			device->geoStatus->jointVelocity[i] = device->geoStatus->PosAnglesVel[i];
+			device->geoStatus->jointVelocity[i+3] = device->geoStatus->GimbalAnglesVel[i];
+		}
+
+		// Cartesian space values
+		// hdGetDoublev(HD_CURRENT_POSITION, device->geoStatus->stylusPosition);
+		hdGetDoublev(HD_CURRENT_TRANSFORM, transform_ref);
+		device->geoStatus->stylusPosition = hduVector3Dd(transform_ref[3][0], transform_ref[3][1], transform_ref[3][2]);
+		transform_ref.getRotation(device->geoStatus->stylusOrientation);
+		// Convert from [mm] to [m]
+		device->geoStatus->stylusPosition *= 1e-3;
+		
+		// TODO:Update the velocity vector
+		device->updateVelocities();
+
+		hdGetDoublev(HD_CURRENT_VELOCITY, device->geoStatus->stylusLinearVelocity2);
+		device->geoStatus->stylusLinearVelocity2 *= 1e-3;
+		// hd api coule not get the angular velocity
+		// hdGetDoublev(HD_CURRENT_ANGULAR_VELOCITY, device->geoStatus->stylusAngularVelocity);
+
+		hdGetDoublev(HD_CURRENT_JACOBIAN, device->geoStatus->jacobian);
 		for (int i = 0; i < 6; i++) {
 			for (int j = 0; j < 6; j++) {
-				J(i, j) = device->geoStatus.jacobian[i * 6 + j];
+				J(i, j) = device->geoStatus->jacobian[i * 6 + j];
 			}
 		}
-		std::memcpy(q.data(), device->geoStatus.jointPosition, sizeof(double) * GEOMAGIC_HAPTIC_JOINTS);
-		std::memcpy(qprev.data(), device->hdUtils.jointPosPrev, sizeof(double) * GEOMAGIC_HAPTIC_JOINTS);
 
-		// Convert from [mm] to [m]
-		device->geoStatus.stylusPosition *= 1e-3;
+		for (int i=0; i<6; i++){
+			qdot[i] = device->geoStatus->jointVelocity[i];
+		}
+		vel = J * qdot;
+		// if (vel.norm() > 1e3) vel.setZero();
+		device->geoStatus->stylusLinearVelocityjac = hduVector3Dd(vel(0), vel(1), vel(2));
+		device->geoStatus->stylusAngularVelocityjac = hduVector3Dd(vel(3), vel(4), vel(5));
+		// std::memcpy(device->hdUtils.jointPosPrev,device->geoStatus->jointPosition,sizeof(double)*HAPTIC_JOINTS);
 
-		// Update the velocity vector
-		device->updateVelocities();
-		/*vel = J * (q - qprev)*(1.0/hdrate);
-		if (vel.norm() > 1e3) vel.setZero();
-		std::cout << "vel = " << vel.transpose() << std::endl;
-		hduVector3Dd linvel(vel(0), vel(1), vel(2));
-		hduVector3Dd angvel(vel(3), vel(4), vel(5));
-		device->geoStatus.stylusLinearVelocity = linvel;
-		device->geoStatus.stylusAngularVelocity = angvel;
-		std::memcpy(device->hdUtils.jointPosPrev,device->geoStatus.jointPosition,sizeof(double)*HAPTIC_JOINTS);//*/
 
-		// Get the state of the button
-		hdGetIntegerv(HD_CURRENT_BUTTONS, &(device->geoStatus.stylusButtons));
+		// std::memcpy(q.data(), device->geoStatus->jointPosition, sizeof(double) * GEOMAGIC_HAPTIC_JOINTS);
+		// std::memcpy(qprev.data(), device->hdUtils.jointPosPrev, sizeof(double) * GEOMAGIC_HAPTIC_JOINTS);
+
+
+
+		// Button state
+		hdGetIntegerv(HD_CURRENT_BUTTONS, &(device->geoStatus->stylusButtons));
 
 		for (int i = 0; i < GEOMAGIC_BUTTONS_NUM; i++) {
-			curButton[i] = (device->geoStatus.stylusButtons == i + 1 || device->geoStatus.stylusButtons == PRESSED_BOTH) ? true : false;
+			curButton[i] = (device->geoStatus->stylusButtons == i + 1 || device->geoStatus->stylusButtons == PRESSED_BOTH) ? true : false;
 
-			// Catch the single pressure event
-			device->catchButtonPressEvent(curButton[i], device->geoStatus.evHoldButton[i],
-				device->geoStatus.evRaiseEdge[i],
-				device->geoStatus.evTrailEdge[i],
-				device->geoStatus.action[i]);
-
+			device->catchButtonPressEvent(curButton[i], device->geoStatus->evHoldButton[i],
+				device->geoStatus->evRaiseEdge[i],
+				device->geoStatus->evTrailEdge[i],
+				device->geoStatus->action[i]);
 		}
-
 	}
+
 	return HD_CALLBACK_DONE;
 }
 
@@ -417,7 +393,7 @@ HDCallbackCode forceFeedbackCallback(void* data) {
 	HDErrorInfo error;
 	hdBeginFrame(device->dvcHandle);
 
-	hdSetDoublev(HD_CURRENT_FORCE, device->geoStatus.force);
+	hdSetDoublev(HD_CURRENT_FORCE, device->geoStatus->force);
 	hdEndFrame(device->dvcHandle);
 
 	if (HD_DEVICE_ERROR(error = hdGetError()))
@@ -437,14 +413,15 @@ HDCallbackCode forceFeedbackCallback(void* data) {
 * Update the linear and angular velocities of the Geomagic stylus
 * Set internally stylusLinearVelocity and stylusAngularVelocity
 */
-void GeomagicProxy::updateVelocities() {
+void GeomagicProxy::updateVelocities() 
+{
+	hduVector3Dd vel_buff(0.0, 0.0, 0.0);
 
 	// Compute linear velocities
-	hduVector3Dd vel_buff(0.0, 0.0, 0.0);
-	vel_buff = (this->geoStatus.stylusPosition * 3 - 4 * hdUtils.prvPos + hdUtils.lstPos) / 0.002; //mm/s, 2nd order backward dif
+	vel_buff = (this->geoStatus->stylusPosition * 3 - 4 * hdUtils.prvPos + hdUtils.lstPos) / 0.002; //mm/s, 2nd order backward dif
 	hdUtils.lvelocity = (.2196 * (vel_buff + hdUtils.vrLstInputVel) + .6588 * (hdUtils.prvInputVel + hdUtils.lstInputVel)) / 1000.0 - (-2.7488 * hdUtils.prvOutVel + 2.5282 * hdUtils.lstOutVel - 0.7776 * hdUtils.vrLstOutVel); //cutoff freq of 20 Hz
 	hdUtils.lstPos = hdUtils.prvPos;
-	hdUtils.prvPos = this->geoStatus.stylusPosition;
+	hdUtils.prvPos = this->geoStatus->stylusPosition;
 	hdUtils.vrLstInputVel = hdUtils.lstInputVel;
 	hdUtils.lstInputVel = hdUtils.prvInputVel;
 	hdUtils.prvInputVel = vel_buff;
@@ -453,16 +430,16 @@ void GeomagicProxy::updateVelocities() {
 	hdUtils.prvOutVel = hdUtils.lvelocity;
 	hdUtils.lvelocityTemp = hdUtils.lvelocityTemp + ((hdUtils.lvelocity - hdUtils.lvelocityTemp) * (0.001 / (0.001 + 0.07)));
 
-	// Set linear velocities
-	this->geoStatus.stylusLinearVelocity = hdUtils.lvelocityTemp;
+	this->geoStatus->stylusLinearVelocity = hdUtils.lvelocityTemp;
 
 
 	// Compute angular velocities
+	// TODO: update angular velocity
 	vel_buff.set(0.0, 0.0, 0.0);
-	vel_buff = (this->geoStatus.stylusGimbalAngles * 3 - 4 * hdUtils.prvAng + hdUtils.lstAng) / 0.002; //mm/s, 2nd order backward dif
+	vel_buff = (this->geoStatus->GimbalAngles * 3 - 4 * hdUtils.prvAng + hdUtils.lstAng) / 0.002; //mm/s, 2nd order backward dif
 	hdUtils.avelocity = (.2196 * (vel_buff + hdUtils.vrLstInputAngVel) + .6588 * (hdUtils.prvInputAngVel + hdUtils.lstInputAngVel)) / 1000.0 - (-2.7488 * hdUtils.prvOutAngVel + 2.5282 * hdUtils.lstOutAngVel - 0.7776 * hdUtils.vrLstOutAngVel); //cutoff freq of 20 Hz
 	hdUtils.lstAng = hdUtils.prvAng;
-	hdUtils.prvAng = this->geoStatus.stylusGimbalAngles;
+	hdUtils.prvAng = this->geoStatus->GimbalAngles;
 	hdUtils.vrLstInputAngVel = hdUtils.lstInputAngVel;
 	hdUtils.lstInputAngVel = hdUtils.prvInputAngVel;
 	hdUtils.prvInputAngVel = vel_buff;
@@ -471,8 +448,52 @@ void GeomagicProxy::updateVelocities() {
 	hdUtils.prvOutAngVel = hdUtils.avelocity;
 	hdUtils.avelocityTemp = hdUtils.avelocityTemp + ((hdUtils.avelocity - hdUtils.avelocityTemp) * (0.001 / (0.001 + 0.07)));
 
-	// Set angular velocities
-	this->geoStatus.stylusAngularVelocity = hdUtils.avelocityTemp;
+	this->geoStatus->stylusAngularVelocity = hdUtils.avelocityTemp;
+
+}
+
+/**
+* @brief Update function
+* Update the Joint Velocity of the Geomagic stylus
+* Set internally jointVelocity
+*/
+void GeomagicProxy::updateJointVelocities()
+{
+	hduVector3Dd vel_buff(0.0, 0.0, 0.0);
+
+	// Compute pos joint velocities
+	vel_buff.set(0.0, 0.0, 0.0);
+	vel_buff = (this->geoStatus->PosAngles * 3 - 4 * hdUtils.prvAng0 + hdUtils.lstAng0) / 0.002; //mm/s, 2nd order backward dif
+	hdUtils.avelocity0 = (.2196 * (vel_buff + hdUtils.vrLstInputAngVel0) + .6588 * (hdUtils.prvInputAngVel0 + hdUtils.lstInputAngVel0)) / 1000.0 
+	                  - (-2.7488 * hdUtils.prvOutAngVel0 + 2.5282 * hdUtils.lstOutAngVel0 - 0.7776 * hdUtils.vrLstOutAngVel0); //cutoff freq of 20 Hz
+	hdUtils.lstAng0 = hdUtils.prvAng0;
+	hdUtils.prvAng0 = this->geoStatus->PosAngles;
+	hdUtils.vrLstInputAngVel0 = hdUtils.lstInputAngVel0;
+	hdUtils.lstInputAngVel0 = hdUtils.prvInputAngVel0;
+	hdUtils.prvInputAngVel0 = vel_buff;
+	hdUtils.vrLstOutAngVel0 = hdUtils.lstOutAngVel0;
+	hdUtils.lstOutAngVel0 = hdUtils.prvOutAngVel0;
+	hdUtils.prvOutAngVel0 = hdUtils.avelocity0;
+	hdUtils.avelocityTemp0 = hdUtils.avelocityTemp0 + ((hdUtils.avelocity0 - hdUtils.avelocityTemp0) * (0.001 / (0.001 + 0.07)));
+
+	this->geoStatus->PosAnglesVel = hdUtils.avelocityTemp0;	
+
+	// Compute gimbal joint velocities
+	vel_buff.set(0.0, 0.0, 0.0);
+	vel_buff = (this->geoStatus->GimbalAngles * 3 - 4 * hdUtils.prvAng + hdUtils.lstAng) / 0.002; //mm/s, 2nd order backward dif
+	hdUtils.avelocity = (.2196 * (vel_buff + hdUtils.vrLstInputAngVel) + .6588 * (hdUtils.prvInputAngVel + hdUtils.lstInputAngVel)) / 1000.0 
+	                  - (-2.7488 * hdUtils.prvOutAngVel + 2.5282 * hdUtils.lstOutAngVel - 0.7776 * hdUtils.vrLstOutAngVel); //cutoff freq of 20 Hz
+	hdUtils.lstAng = hdUtils.prvAng;
+	hdUtils.prvAng = this->geoStatus->GimbalAngles;
+	hdUtils.vrLstInputAngVel = hdUtils.lstInputAngVel;
+	hdUtils.lstInputAngVel = hdUtils.prvInputAngVel;
+	hdUtils.prvInputAngVel = vel_buff;
+	hdUtils.vrLstOutAngVel = hdUtils.lstOutAngVel;
+	hdUtils.lstOutAngVel = hdUtils.prvOutAngVel;
+	hdUtils.prvOutAngVel = hdUtils.avelocity;
+	hdUtils.avelocityTemp = hdUtils.avelocityTemp + ((hdUtils.avelocity - hdUtils.avelocityTemp) * (0.001 / (0.001 + 0.07)));
+
+	this->geoStatus->GimbalAnglesVel = hdUtils.avelocityTemp;
 
 }
 
@@ -485,7 +506,7 @@ void GeomagicProxy::updateVelocities() {
 void GeomagicProxy::setHapticForce(const Eigen::VectorXf& f) {
 
 	for (int i = 0; i < GEOMAGIC_HAPTIC_DOF; i++) {
-		this->geoStatus.force[i] = f(i);
+		this->geoStatus->force[i] = f(i);
 	}
 }
 
@@ -497,7 +518,7 @@ void GeomagicProxy::setHapticForce(const Eigen::VectorXf& f) {
 void GeomagicProxy::setHIPPosition(const Eigen::Vector3f& p) {
 
 	for (int i = 0; i < SPACE_DIM; i++) {
-		this->geoStatus.stylusPosition[i] = p(i);
+		this->geoStatus->stylusPosition[i] = p(i);
 	}
 
 }
@@ -511,7 +532,7 @@ void GeomagicProxy::setHIPPosition(const Eigen::Vector3f& p) {
 void GeomagicProxy::setHIPGimbalAngles(const Eigen::Vector3f& ga) {
 
 	for (int i = 0; i < SPACE_DIM; i++) {
-		this->geoStatus.stylusGimbalAngles[i] = ga(i);
+		this->geoStatus->GimbalAngles[i] = ga(i);
 	}
 
 }
@@ -524,8 +545,8 @@ void GeomagicProxy::setHIPGimbalAngles(const Eigen::Vector3f& ga) {
 void GeomagicProxy::setHIPVelocity(const Eigen::Vector6f& v) {
 
 	for (int i = 0; i < SPACE_DIM; i++) {
-		this->geoStatus.stylusLinearVelocity[i] = v(i);
-		this->geoStatus.stylusAngularVelocity[i] = v(i + SPACE_DIM);
+		this->geoStatus->stylusLinearVelocity[i] = v(i);
+		this->geoStatus->stylusAngularVelocity[i] = v(i + SPACE_DIM);
 	}
 
 }
@@ -538,8 +559,8 @@ void GeomagicProxy::setHIPVelocity(const Eigen::Vector6f& v) {
 */
 void GeomagicProxy::setButtonState(const bool* state) {
 
-	this->geoStatus.action[GEOMAGIC_LOW_BUTTON] = state[GEOMAGIC_LOW_BUTTON];
-	this->geoStatus.action[GEOMAGIC_HIGH_BUTTON] = state[GEOMAGIC_HIGH_BUTTON];
+	this->geoStatus->action[GEOMAGIC_LOW_BUTTON] = state[GEOMAGIC_LOW_BUTTON];
+	this->geoStatus->action[GEOMAGIC_HIGH_BUTTON] = state[GEOMAGIC_HIGH_BUTTON];
 
 }
 
@@ -554,7 +575,7 @@ Eigen::VectorXf GeomagicProxy::getHapticForce() {
 	ret.setZero(GEOMAGIC_HAPTIC_DOF);
 
 	for (int i = 0; i < GEOMAGIC_HAPTIC_DOF; i++) {
-		ret(i) = this->geoStatus.force[i];
+		ret(i) = this->geoStatus->force[i];
 	}
 
 	return ret;
@@ -571,7 +592,7 @@ Eigen::Vector3f GeomagicProxy::getHIPPosition() {
 	Eigen::Vector3f ret;
 
 	for (int i = 0; i < SPACE_DIM; i++) {
-		ret(i) = this->geoStatus.stylusPosition[i];
+		ret(i) = this->geoStatus->stylusPosition[i];
 	}
 
 	return ret;
@@ -588,7 +609,7 @@ Eigen::Vector3f GeomagicProxy::getHIPGimbalAngles() {
 	Eigen::Vector3f ret;
 
 	for (int i = 0; i < SPACE_DIM; i++) {
-		ret(i) = this->geoStatus.stylusGimbalAngles[i];
+		ret(i) = this->geoStatus->GimbalAngles[i];
 	}
 
 	return ret;
@@ -605,8 +626,8 @@ Eigen::Vector6f GeomagicProxy::getHIPVelocity() {
 	Eigen::Vector6f ret;
 
 	for (int i = 0; i < SPACE_DIM; i++) {
-		ret(i) = this->geoStatus.stylusLinearVelocity[i];
-		ret(i + SPACE_DIM) = this->geoStatus.stylusAngularVelocity[i];
+		ret(i) = this->geoStatus->stylusLinearVelocity[i];
+		ret(i + SPACE_DIM) = this->geoStatus->stylusAngularVelocity[i];
 	}
 
 	return ret;
@@ -620,7 +641,7 @@ Eigen::Vector6f GeomagicProxy::getHIPVelocity() {
 */
 bool* GeomagicProxy::getButtonState() {
 
-	return (this->geoStatus.action);
+	return (this->geoStatus->action);
 
 }
 

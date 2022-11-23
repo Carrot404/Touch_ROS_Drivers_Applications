@@ -13,12 +13,6 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <touch_msgs/TouchButtonEvent.h>
 
-// #include <HL/hl.h>
-#include <HD/hd.h>
-#include <HDU/hduError.h>
-#include <HDU/hduVector.h>
-#include <HDU/hduMatrix.h>
-#include <HDU/hduQuaternion.h>
 
 #include <boost/shared_ptr.hpp>
 #include <pthread.h>
@@ -73,7 +67,7 @@ private:
     string device_name_;
     int publish_rate_;
 
-    // TouchState *state_;
+    TouchState *state_;
     GeomagicStatus *geoStatus_;
 	boost::shared_ptr<tf::TransformListener> tf_listener_;
 
@@ -157,102 +151,102 @@ PhantomROS::PhantomROS(ros::NodeHandle nh, GeomagicStatus *state) : nh_(nh), pri
 
 PhantomROS::~PhantomROS(){}
 
-// void PhantomROS::publish_touch_state()
-// {
-//     // Button publisher
-//     if ((state_->buttons[0] != state_->buttons_prev[0])
-//         or (state_->buttons[1] != state_->buttons_prev[1]))
-//     {
-//       touch_msgs::TouchButtonEvent button_msg;
-//       button_msg.grey_button = state_->buttons[0];
-//       button_msg.white_button = state_->buttons[1];
-//       state_->buttons_prev[0] = state_->buttons[0];
-//       state_->buttons_prev[1] = state_->buttons[1];
-//       button_pub_.publish(button_msg);
-//     }
+void PhantomROS::publish_touch_state()
+{
+    // Button publisher
+    if ((state_->buttons[0] != state_->buttons_prev[0])
+        or (state_->buttons[1] != state_->buttons_prev[1]))
+    {
+      touch_msgs::TouchButtonEvent button_msg;
+      button_msg.grey_button = state_->buttons[0];
+      button_msg.white_button = state_->buttons[1];
+      state_->buttons_prev[0] = state_->buttons[0];
+      state_->buttons_prev[1] = state_->buttons[1];
+      button_pub_.publish(button_msg);
+    }
 
-//     // Joint States publisher
-//     sensor_msgs::JointState joint_msg;
-//     joint_msg.header.stamp = ros::Time::now();
-//     joint_msg.name.resize(6);
-//     joint_msg.position.resize(6);
-//     joint_msg.name[0] = "waist";
-//     joint_msg.position[0] = -state_->joint_angles[0];
-//     joint_msg.name[1] = "shoulder";
-//     joint_msg.position[1] = state_->joint_angles[1];
-//     joint_msg.name[2] = "elbow";
-//     joint_msg.position[2] = state_->joint_angles[2]-state_->joint_angles[1];
-//     joint_msg.name[3] = "yaw";
-//     joint_msg.position[3] = -state_->gimbal_angles[0];
-//     joint_msg.name[4] = "pitch";
-//     joint_msg.position[4] = state_->gimbal_angles[1]+1.49;
-//     joint_msg.name[5] = "roll";
-//     joint_msg.position[5] = state_->gimbal_angles[2];
-//     joint_pub_.publish(joint_msg);
+    // Joint States publisher
+    sensor_msgs::JointState joint_msg;
+    joint_msg.header.stamp = ros::Time::now();
+    joint_msg.name.resize(6);
+    joint_msg.position.resize(6);
+    joint_msg.name[0] = "waist";
+    joint_msg.position[0] = -state_->joint_angles[0];
+    joint_msg.name[1] = "shoulder";
+    joint_msg.position[1] = state_->joint_angles[1];
+    joint_msg.name[2] = "elbow";
+    joint_msg.position[2] = state_->joint_angles[2]-state_->joint_angles[1];
+    joint_msg.name[3] = "yaw";
+    joint_msg.position[3] = -state_->gimbal_angles[0];
+    joint_msg.name[4] = "pitch";
+    joint_msg.position[4] = state_->gimbal_angles[1]+1.49;
+    joint_msg.name[5] = "roll";
+    joint_msg.position[5] = state_->gimbal_angles[2];
+    joint_pub_.publish(joint_msg);
 
-//     // Pose_ref publisher
-//     geometry_msgs::PoseStamped poseref_msg;
-//     poseref_msg.header.frame_id = "base_ref";
-//     poseref_msg.header.stamp = joint_msg.header.stamp;
-//     poseref_msg.pose.position.x = state_->position[0]/1000.0;
-//     poseref_msg.pose.position.y = state_->position[1]/1000.0;
-//     poseref_msg.pose.position.z = state_->position[2]/1000.0;
-//     poseref_msg.pose.orientation.x = state_->orientation.v()[0];
-//     poseref_msg.pose.orientation.y = state_->orientation.v()[1];
-//     poseref_msg.pose.orientation.z = state_->orientation.v()[2];
-//     poseref_msg.pose.orientation.w = state_->orientation.s(); 
+    // Pose_ref publisher
+    geometry_msgs::PoseStamped poseref_msg;
+    poseref_msg.header.frame_id = "base_ref";
+    poseref_msg.header.stamp = joint_msg.header.stamp;
+    poseref_msg.pose.position.x = state_->position[0]/1000.0;
+    poseref_msg.pose.position.y = state_->position[1]/1000.0;
+    poseref_msg.pose.position.z = state_->position[2]/1000.0;
+    poseref_msg.pose.orientation.x = state_->orientation.v()[0];
+    poseref_msg.pose.orientation.y = state_->orientation.v()[1];
+    poseref_msg.pose.orientation.z = state_->orientation.v()[2];
+    poseref_msg.pose.orientation.w = state_->orientation.s(); 
 
-//     // poseref_msg.pose.position.x = geoStatus_->stylusPosition[0];
-//     // poseref_msg.pose.position.y = geoStatus_->stylusPosition[1];
-//     // poseref_msg.pose.position.z = geoStatus_->stylusPosition[2];
+    // poseref_msg.pose.position.x = geoStatus_->stylusPosition[0];
+    // poseref_msg.pose.position.y = geoStatus_->stylusPosition[1];
+    // poseref_msg.pose.position.z = geoStatus_->stylusPosition[2];
 
-//     poseref_pub_.publish(poseref_msg);
+    poseref_pub_.publish(poseref_msg);
 
-//     // Pose_based urdf publisher
-//     /* tf::StampedTransform transform_tf;
-//     try{
-//         tf_listener_->waitForTransform("base", "stylus", ros::Time(0), ros::Duration(0.5));
-//         tf_listener_->lookupTransform("base", "stylus", ros::Time(0), transform_tf);
-//     }
-//     catch(tf::TransformException &ex){
-//         ROS_ERROR("tf listener: transform exception : %s",ex.what());
-//         return;
-//     }
-//     tf::Quaternion quat_tf =  transform_tf.getRotation();
-//     tf::Point vec_tf = transform_tf.getOrigin();
-//     geometry_msgs::PoseStamped pose_msg;
-//     pose_msg.header.frame_id = "base";
-//     pose_msg.header.stamp = joint_msg.header.stamp;
-//     tf::pointTFToMsg(vec_tf, pose_msg.pose.position);
-//     tf::quaternionTFToMsg(quat_tf, pose_msg.pose.orientation);
-//     pose_pub_.publish(pose_msg); */
+    // Pose_based urdf publisher
+    /* tf::StampedTransform transform_tf;
+    try{
+        tf_listener_->waitForTransform("base", "stylus", ros::Time(0), ros::Duration(0.5));
+        tf_listener_->lookupTransform("base", "stylus", ros::Time(0), transform_tf);
+    }
+    catch(tf::TransformException &ex){
+        ROS_ERROR("tf listener: transform exception : %s",ex.what());
+        return;
+    }
+    tf::Quaternion quat_tf =  transform_tf.getRotation();
+    tf::Point vec_tf = transform_tf.getOrigin();
+    geometry_msgs::PoseStamped pose_msg;
+    pose_msg.header.frame_id = "base";
+    pose_msg.header.stamp = joint_msg.header.stamp;
+    tf::pointTFToMsg(vec_tf, pose_msg.pose.position);
+    tf::quaternionTFToMsg(quat_tf, pose_msg.pose.orientation);
+    pose_pub_.publish(pose_msg); */
 
-//     // Twist publisher
-//     // tf::StampedTransform transform_tf;
-//     // try{
-//     //     tf_listener_->waitForTransform("base", "probe", ros::Time(0), ros::Duration(0.5));
-//     //     tf_listener_->lookupTransform("base", "probe", ros::Time(0), transform_tf);
-//     // }
-//     // catch(tf::TransformException &ex){
-//     //     ROS_ERROR("tf listener: transform exception : %s",ex.what());
-//     //     return;
-//     // }
-//     // tf::Quaternion quat_tf =  transform_tf.getRotation();
-//     // tf::Point vec_tf = transform_tf.getOrigin();
+    // Twist publisher
+    // tf::StampedTransform transform_tf;
+    // try{
+    //     tf_listener_->waitForTransform("base", "probe", ros::Time(0), ros::Duration(0.5));
+    //     tf_listener_->lookupTransform("base", "probe", ros::Time(0), transform_tf);
+    // }
+    // catch(tf::TransformException &ex){
+    //     ROS_ERROR("tf listener: transform exception : %s",ex.what());
+    //     return;
+    // }
+    // tf::Quaternion quat_tf =  transform_tf.getRotation();
+    // tf::Point vec_tf = transform_tf.getOrigin();
 
-//     geometry_msgs::TwistStamped twist_msg;
-//     twist_msg.header.frame_id = "base";
-//     twist_msg.header.stamp = joint_msg.header.stamp;
-//     twist_msg.twist.linear.x = -state_->linear_velocity[0]/1000.0;
-//     twist_msg.twist.linear.y = state_->linear_velocity[2]/1000.0;
-//     twist_msg.twist.linear.z = state_->linear_velocity[1]/1000.0;
-//     twist_msg.twist.angular.x = state_->angular_velocity[0];
-//     twist_msg.twist.angular.y = state_->angular_velocity[1];
-//     twist_msg.twist.angular.z = state_->angular_velocity[2];
-//     twist_pub_.publish(twist_msg);
+    geometry_msgs::TwistStamped twist_msg;
+    twist_msg.header.frame_id = "base";
+    twist_msg.header.stamp = joint_msg.header.stamp;
+    twist_msg.twist.linear.x = -state_->linear_velocity[0]/1000.0;
+    twist_msg.twist.linear.y = state_->linear_velocity[2]/1000.0;
+    twist_msg.twist.linear.z = state_->linear_velocity[1]/1000.0;
+    twist_msg.twist.angular.x = state_->angular_velocity[0];
+    twist_msg.twist.angular.y = state_->angular_velocity[1];
+    twist_msg.twist.angular.z = state_->angular_velocity[2];
+    twist_pub_.publish(twist_msg);
 
 
-// }
+}
 
 // HDCallbackCode HDCALLBACK touch_state_callback(void *pUserData)
 HDCallbackCode touch_state_callback(void *pUserData)
@@ -301,7 +295,7 @@ HDCallbackCode touch_state_callback(void *pUserData)
 /*******************************************************************************
  Automatic Calibration of Phantom Device - No character inputs
  *******************************************************************************/
-void HHD_Auto_Calibration() {
+/* void HHD_Auto_Calibration() {
     int supportedCalibrationStyles;
     HDErrorInfo error;
 
@@ -341,21 +335,21 @@ void HHD_Auto_Calibration() {
         else
         ROS_FATAL("Unknown calibration status");
     }
-}
+} */
 
-// void *ros_publish(void *ptr) {
-//     PhantomROS *touch = (PhantomROS *) ptr;
-//     ROS_INFO("Publishing Phantom state at [%d] Hz", touch->getPubRate());
-//     ros::Rate loop_rate(touch->getPubRate());
-//     ros::AsyncSpinner spinner(2);
-//     spinner.start();
+/* void *ros_publish(void *ptr) {
+    PhantomROS *touch = (PhantomROS *) ptr;
+    ROS_INFO("Publishing Phantom state at [%d] Hz", touch->getPubRate());
+    ros::Rate loop_rate(touch->getPubRate());
+    ros::AsyncSpinner spinner(2);
+    spinner.start();
 
-//     while (ros::ok()) {
-//         touch->publish_touch_state();
-//         loop_rate.sleep();
-//     }
-//     return NULL;
-// }
+    while (ros::ok()) {
+        touch->publish_touch_state();
+        loop_rate.sleep();
+    }
+    return NULL;
+} */
 
 int main(int argc, char** argv)
 {
@@ -366,19 +360,17 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
 
     // init GeomagicProxy
-    GeomagicProxy touchProxy;
-    GeomagicStatus* geoStatus = touchProxy.getState();
-
-    // TouchState state;
-    // PhantomROS touch(nh, touchProxy.getState());
+    GeomagicStatus geoStatus;
+    GeomagicProxy touchProxy(&geoStatus);
 
     touchProxy.run();
-    while(ros::ok()){
-        ROS_INFO_STREAM(geoStatus->stylusGimbalAngles[0]<< " " 
-                     << geoStatus->stylusGimbalAngles[1]<< " "
-                     << geoStatus->stylusGimbalAngles[2]<< " ");
-    }
-    touchProxy.stop();
+
+    // while(ros::ok()){
+        // ROS_INFO_STREAM(geoStatus.stylusGimbalAngles[0]<< " " 
+        //              << geoStatus.stylusGimbalAngles[1]<< " "
+        //              << geoStatus.stylusGimbalAngles[2]<< " ");
+    // }
+    // touchProxy.stop();
 
 
     ////////////////////////////////////////////////////////////////
@@ -417,20 +409,6 @@ int main(int argc, char** argv)
     // pthread_create(&publish_thread, NULL, ros_publish, (void*) &touch);
     // pthread_join(publish_thread, NULL);
     
-    /**********************
-     * 
-     *   9561   9561 pts/0    00:00:00 roslaunch
-        9561   9568 pts/0    00:00:00 roslaunch
-        9561   9569 pts/0    00:00:00 roslaunch
-     * 
-     * 10602 carrot   roslaunch                                     
- 10612 carrot   rosmaster                                     
- 10624 carrot   rosout                                        
- 10631 carrot   touch_state 
-     * 
-     * 
-     */
-
 
 
     // ROS_INFO("Ending Session....");
