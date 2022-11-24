@@ -84,8 +84,6 @@ struct HDUtilityData {
 	hduVector3Dd avelocity;            //!< gimbal velocity
 	hduVector3Dd avelocityTemp;        //!< temp gimbal velocity
 
-	// HDdouble jointPosPrev[GEOMAGIC_HAPTIC_JOINTS];
-
 };
 
 
@@ -96,22 +94,22 @@ struct GeomagicStatus {
 	hduQuaternion stylusOrientation;                                //!< Orientation vector of the styus HIP (Haptic Interface Point) of the Geomagic device
 	hduVector3Dd stylusLinearVelocity;								//!< Linear velocity vector of the styus HIP (Haptic Interface Point) of the Geomagic device
 	hduVector3Dd stylusAngularVelocity;								//!< Angular velocity vector of the styus HIP (Haptic Interface Point) of the Geomagic device
-	hduVector3Dd stylusLinearVelocity2;		// ExampleTest			//!< Linear velocity vector of the styus HIP (Haptic Interface Point) of the Geomagic device
-	hduVector3Dd stylusLinearVelocityjac;		// ExampleTest			//!< Linear velocity vector of the styus HIP (Haptic Interface Point) of the Geomagic device
-	hduVector3Dd stylusAngularVelocityjac;		// ExampleTest			//!< Linear velocity vector of the styus HIP (Haptic Interface Point) of the Geomagic device
-	double jacobian[SPACE_DIM * 2 * GEOMAGIC_HAPTIC_JOINTS];		//!< Vectorized Jacobian matrix (TODO:in which order it is stored?)
+	double jacobian[SPACE_DIM * 2 * GEOMAGIC_HAPTIC_JOINTS];		//!< Vectorized Jacobian matrix
+	hduVector3Dd force;												//!< Force vector of the Geomagic device
 	
+
 	/* Joint space values */
 	hduVector3Dd PosAngles;                                         //!< first three joint angles of the stylus of the Geomagic device
 	hduVector3Dd GimbalAngles;							        	//!< last three gimbal angles of the stylus of the Geomagic device
 	hduVector3Dd PosAnglesVel;                                      //!< velocity of first three joint angles
 	hduVector3Dd GimbalAnglesVel;                                   //!< velocity of last three gimbal joint angles
-	hduVector3Dd force;												//!< Force vector of the Geomagic device
+	hduVector3Dd effort;											//!< first three joint effort
 	double jointPosition[GEOMAGIC_HAPTIC_JOINTS];				    //!< Array of Geomagic joint positions
 	double jointVelocity[GEOMAGIC_HAPTIC_JOINTS];					//!< Array of Geomagic joint velocity
 
 	/* Button state */
-	int stylusButtons;												//!< Status of the buttons on the Geomagic stylus
+	bool buttons[GEOMAGIC_BUTTONS_NUM];                             //!< Status of the buttons on the Geomagic stylus
+	bool buttons_prev[GEOMAGIC_BUTTONS_NUM];                        //!< Previous Status of the buttons on the Geomagic stylus
 	bool action[GEOMAGIC_BUTTONS_NUM];								//!< Raise + Trail action 
 	bool evHoldButton[GEOMAGIC_BUTTONS_NUM];						//!< button state
 	bool evRaiseEdge[GEOMAGIC_BUTTONS_NUM];							//!< Raise action from unpressed to pressed
