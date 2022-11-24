@@ -1,8 +1,7 @@
 /** touch_state.cpp
  * 
- * 
- * 
- * 
+ * \brief Node for 3D Systems Touch state publisher
+ * \author Songjie Xiao (songjiexiao@zju.edu.cn)
  */
 
 #include <ros/ros.h>
@@ -42,7 +41,7 @@ private:
     int publish_rate_;
 
     GeomagicStatus *geoStatus_;
-	boost::shared_ptr<tf::TransformListener> tf_listener_;
+	// boost::shared_ptr<tf::TransformListener> tf_listener_;
 
 public:
     // Constructor and destructor
@@ -93,13 +92,13 @@ PhantomROS::PhantomROS(ros::NodeHandle nh, GeomagicStatus *state) : nh_(nh), pri
     std::string twist_topic = touch_name_+"/twist";
     twist_pub_ = nh_.advertise<geometry_msgs::TwistStamped>(twist_topic.c_str(), 1);  
 
-    tf_listener_ = boost::shared_ptr<tf::TransformListener>(new tf::TransformListener());
-    try{
-        tf_listener_->waitForTransform("base", "stylus", ros::Time(0), ros::Duration(2));
-    }
-    catch(tf::TransformException &ex){
-        ROS_ERROR("tf listener: transform exception : %s",ex.what());
-    }
+    // tf_listener_ = boost::shared_ptr<tf::TransformListener>(new tf::TransformListener());
+    // try{
+    //     tf_listener_->waitForTransform("base", "stylus", ros::Time(0), ros::Duration(2));
+    // }
+    // catch(tf::TransformException &ex){
+    //     ROS_ERROR("tf listener: transform exception : %s",ex.what());
+    // }
 
     // TouchState Init
     geoStatus_ = state;
@@ -184,24 +183,13 @@ void PhantomROS::publish_touch_state()
     // pose_pub_.publish(pose_msg);
 
     // Twist publisher
-    // tf::StampedTransform transform_tf;
-    // try{
-    //     tf_listener_->waitForTransform("base", "probe", ros::Time(0), ros::Duration(0.5));
-    //     tf_listener_->lookupTransform("base", "probe", ros::Time(0), transform_tf);
-    // }
-    // catch(tf::TransformException &ex){
-    //     ROS_ERROR("tf listener: transform exception : %s",ex.what());
-    //     return;
-    // }
-    // tf::Quaternion quat_tf =  transform_tf.getRotation();
-    // tf::Point vec_tf = transform_tf.getOrigin();
-
     geometry_msgs::TwistStamped twist_msg;
     twist_msg.header.frame_id = "base";
     twist_msg.header.stamp = joint_msg.header.stamp;
     twist_msg.twist.linear.x = -geoStatus_->stylusLinearVelocity[0];
     twist_msg.twist.linear.y = geoStatus_->stylusLinearVelocity[2];
     twist_msg.twist.linear.z = geoStatus_->stylusLinearVelocity[1];
+    // TODO: Angular Velocity is not right
     twist_msg.twist.angular.x = geoStatus_->stylusAngularVelocity[0];
     twist_msg.twist.angular.y = geoStatus_->stylusAngularVelocity[1];
     twist_msg.twist.angular.z = geoStatus_->stylusAngularVelocity[2];
@@ -249,61 +237,10 @@ int main(int argc, char** argv)
     pthread_t publish_thread;
     pthread_create(&publish_thread, NULL, ros_publish, (void*) &touch);
     pthread_join(publish_thread, NULL);
+    touchProxy.stop();
+    pthread_join(state_thread, NULL);
 
     ROS_INFO("Ending Session....");
-    touchProxy.stop();
-
-    // loop and publish
-    // pthread_t publish_thread;
-    // pthread_create(&publish_thread, NULL, ros_publish, (void*) &touch);
-    // pthread_detach(publish_thread);
-    // pthread_join(publish_thread, NULL);
-
-
-    ////////////////////////////////////////////////////////////////
-    // Init Phantom
-    ////////////////////////////////////////////////////////////////
-    /**************************************************************
-
-    HDErrorInfo error;
-    HHD hHD;
-    hHD = hdInitDevice(touch.getDeviceName().c_str());
-    if (HD_DEVICE_ERROR(error = hdGetError())) {
-        hduPrintError(stderr, &error, "Failed to initialize haptic device");
-        // ROS_ERROR("Failed to initialize haptic device: %s", &error);
-        return false;
-    }
-    ROS_INFO("Found %s.", hdGetString(HD_DEVICE_MODEL_TYPE));
-
-    hdEnable(HD_FORCE_OUTPUT);
-    hdStartScheduler();
-    if (HD_DEVICE_ERROR(error = hdGetError())) {
-        ROS_ERROR("Failed to start the scheduler"); //, &error);
-        return false;
-    }
-    HHD_Auto_Calibration();
-    // open hd thread
-    // HDSchedulerHandle schHandle = hdScheduleAsynchronous(touch_state_callback, &state, HD_MAX_SCHEDULER_PRIORITY);
-    hdScheduleSynchronous(touch_state_callback, &state, HD_MAX_SCHEDULER_PRIORITY);
-    **************************************************************/
-
-
-    ////////////////////////////////////////////////////////////////
-    // Loop and publish
-    ////////////////////////////////////////////////////////////////
-
-    // pthread_t publish_thread;
-    // pthread_create(&publish_thread, NULL, ros_publish, (void*) &touch);
-    // pthread_join(publish_thread, NULL);
-    
-
-
-    // ROS_INFO("Ending Session....");
-    // hdStopScheduler();
-    // hdDisableDevice(hHD);
 
     return 0;
-    
-
-
 }

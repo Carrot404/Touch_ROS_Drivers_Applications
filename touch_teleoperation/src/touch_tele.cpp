@@ -1,8 +1,7 @@
 /** touch_tele.cpp
  * 
- * 
- * 
- * 
+ * \brief Node for 3D Systems Touch to control Universal Robots
+ * \author Songjie Xiao (songjiexiao@zju.edu.cn)
  */
 
 #include <ros/ros.h>
@@ -43,7 +42,7 @@ private:
 
     ros::AsyncSpinner *spinner;
 	// boost::shared_ptr<tf::TransformListener> tf_listener_;
-    // boost::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group_;
+    boost::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group_;
 
 
 public:
@@ -59,14 +58,22 @@ public:
     void poserefCallback(const geometry_msgs::PoseStamped::ConstPtr &msg);
     void twistCallback(const geometry_msgs::TwistStamped::ConstPtr &msg);
 
-
-
-
-
+    // teleoperation control loop 
+    void teleControl();
 };
 
 TouchTele::TouchTele(ros::NodeHandle nh) : nh_(nh), priv_nh_("~")
 {
+
+    // Init Move Group
+    move_group_ = boost::shared_ptr<moveit::planning_interface::MoveGroupInterface>(new moveit::planning_interface::MoveGroupInterface("manipulator"));
+    ROS_INFO("Planning frame: %s", move_group_->getPlanningFrame().c_str());
+    ROS_INFO("Available Joint Names:");
+    std::copy(move_group_->getJointNames().begin(), move_group_->getJointNames().end(),
+                std::ostream_iterator<std::string>(std::cout, ", "));
+    std::cout<<std::endl;
+    ROS_INFO("End effector link: %s", move_group_->getEndEffectorLink().c_str());
+
     // ROS Parameters
     priv_nh_.param<std::string>("touch_namespace", touch_name_, "Touch");
     
@@ -82,15 +89,6 @@ TouchTele::TouchTele(ros::NodeHandle nh) : nh_(nh), priv_nh_("~")
     std::string twist_topic = touch_name_+"/twist";
     twist_sub_ = nh_.subscribe(twist_topic, 5, &TouchTele::twistCallback, this);
 
-    // init move_group
-    // move_group_ = boost::shared_ptr<moveit::planning_interface::MoveGroupInterface>(new moveit::planning_interface::MoveGroupInterface("manipulator"));
-    // ROS_INFO("Planning frame: %s", move_group_->getPlanningFrame().c_str());
-    // ROS_INFO("Available Joint Names:");
-    // std::copy(move_group_->getJointNames().begin(), move_group_->getJointNames().end(),
-    //             std::ostream_iterator<std::string>(std::cout, ", "));
-    // std::cout<<std::endl;
-    // ROS_INFO("End effector link: %s", move_group_->getEndEffectorLink().c_str());
-
     // init tf listener
     // tf_listener_ = boost::shared_ptr<tf::TransformListener>(new tf::TransformListener());
     // try{
@@ -101,33 +99,32 @@ TouchTele::TouchTele(ros::NodeHandle nh) : nh_(nh), priv_nh_("~")
     // }
 
     // init ROS Spinner
-    spinner = new ros::AsyncSpinner(4);
+    spinner = new ros::AsyncSpinner(3);
     spinner->start();
 
     position_.resize(3);
     position_prev_.resize(3);
     target_delta_.resize(3);
+    velocity_.resize(3);
     for (int i=0; i<3; i++){
         position_[i] = 0.0;
         position_prev_[i] = 0.0;
         target_delta_[i] = 0.0;
+        velocity_[i] = 0.0;
     }
     count_ = 0;
     teleIsActive_ = false;
 
 }
 
-TouchTele::~TouchTele()
-{
-
-}
+TouchTele::~TouchTele(){}
 
 void TouchTele::buttonCallback(const touch_msgs::TouchButtonEvent::ConstPtr &msg)
 {
-    if (msg->grey_button == 1){
+    if (msg->white_button_action == 1){
         teleIsActive_ = true;
     }
-    if (msg->grey_button == 0){
+    if (msg->white_button_action == 0){
         teleIsActive_ = false;
     }
 }
@@ -150,22 +147,74 @@ void TouchTele::poserefCallback(const geometry_msgs::PoseStamped::ConstPtr &msg)
     tf::Quaternion base_Q_probe = base_Q_bref * bref_Q_sref * sref_Q_probe;
     tf::quaternionTFToMsg(base_Q_probe, target_orientation_);
 
-    ++count_;
+    // ++count_;
 
     // filter by average
-    if (count_ == 4){
-        for (int i=0; i<3; i++){
-            position_[i] /= 4;
-            target_delta_[i] = position_[i]-position_prev_[i];
-            position_prev_[i] = position_[i];
-            position_[i] = 0;
-        }
-        count_ = 0;
-    }
+    // if (count_ == 4){
+    //     for (int i=0; i<3; i++){
+    //         position_[i] /= 4;
+    //         target_delta_[i] = position_[i]-position_prev_[i];
+    //         position_prev_[i] = position_[i];
+    //         position_[i] = 0;
+    //     }
+    //     count_ = 0;
+    // }
 }
 
 void TouchTele::twistCallback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
+    velocity_[0] = msg->twist.linear.x;
+    velocity_[1] = msg->twist.linear.y;
+    velocity_[2] = msg->twist.linear.z;
+
+    // ++count_;
+    // // filter by average
+    // if (count_ == 4){
+    //     for (int i=0; i<3; i++){
+    //         velocity_[i] /= 4;
+    //     }
+    //     count_ = 0;
+    // }
+}
+
+void TouchTele::teleControl()
+{
+    // Init robot state to HOME
+    move_group_->setNamedTarget("home");
+    move_group_->move();
+    sleep(2);
+
+    // fix orientation first 
+    geometry_msgs::PoseStamped current_pose = move_group_->getCurrentPose();
+    geometry_msgs::PoseStamped target_pose = current_pose;
+    moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+    bool success;
+    ros::Rate loop_rate(200);
+    while (ros::ok()){
+    // while (!teleIsActive_){}
+        if (teleIsActive_){
+
+            target_pose.header.stamp = ros::Time::now();
+            target_pose.pose.position.x += velocity_[0] * 1;
+            target_pose.pose.position.y += velocity_[1] * 1;
+            target_pose.pose.position.z += velocity_[2] * 1;
+
+            move_group_->setPoseTarget(target_pose);
+            success = (move_group_->plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+            ROS_INFO("Start point %s", success ? "" : "FAILED");
+            move_group_->execute(my_plan);
+
+
+
+
+
+
+        }
+        loop_rate.sleep();
+    }
+
+
+    
 
 }
 
@@ -178,56 +227,8 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
     TouchTele touch_tele(nh);
 
-    ////////////////////////////////////////////////////////////////
-    // Init Move Group
-    ////////////////////////////////////////////////////////////////
-    // boost::shared_ptr<moveit::planning_interface::MoveGroupInterface> move_group;
-    // move_group = boost::shared_ptr<moveit::planning_interface::MoveGroupInterface>(new moveit::planning_interface::MoveGroupInterface("manipulator"));
-    // ROS_INFO("Planning frame: %s", move_group->getPlanningFrame().c_str());
-    // ROS_INFO("Available Joint Names:");
-    // std::copy(move_group->getJointNames().begin(), move_group->getJointNames().end(),
-    //             std::ostream_iterator<std::string>(std::cout, ", "));
-    // std::cout<<std::endl;
-    // // move_group->setEndEffectorLink("probe_end");
-    // ROS_INFO("End effector link: %s", move_group->getEndEffectorLink().c_str());
-
-    // Init robot state to HOME
-
-    // std::vector<double> zero_pos;
-    // zero_pos.resize(6);
-    // for (int i=0; i<6; i++){
-    //     zero_pos[i] = 0.0;
-    // }
-    // move_group->setJointValueTarget(zero_pos);
-    // move_group->move();
-    // usleep(2000);
-    // move_group->setNamedTarget("home");
-    // move_group->move();
-
-	boost::shared_ptr<tf::TransformListener> tf_listener;
-    // init tf listener
-    tf_listener = boost::shared_ptr<tf::TransformListener>(new tf::TransformListener());
-    try{
-        tf_listener->waitForTransform("base_link", "tool0", ros::Time(0), ros::Duration(2));
-    }
-    catch(tf::TransformException &ex){
-        ROS_ERROR("tf listener: transform exception : %s",ex.what());
-    }
-
-    tf::StampedTransform transform_tf;
-    try{
-        tf_listener->waitForTransform("base_link", "tool0", ros::Time(0), ros::Duration(0.2));
-        tf_listener->lookupTransform("base_link", "tool0", ros::Time(0), transform_tf);
-    }
-    catch(tf::TransformException &ex){
-        ROS_ERROR("tf listener: transform exception : %s",ex.what());
-    }
-
-    geometry_msgs::TransformStamped pose;
-    tf::transformStampedTFToMsg(transform_tf, pose);
-
-    ROS_INFO_STREAM(pose);
-
+    // run tele loop
+    touch_tele.teleControl();
 
     // geometry_msgs::PoseStamped current_pose = move_group->getCurrentPose();
     // ROS_INFO_STREAM(current_pose);
