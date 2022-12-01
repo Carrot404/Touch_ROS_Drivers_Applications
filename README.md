@@ -1,8 +1,9 @@
 # 3D Systems Geomagic Touch ROS Drivers and Applications
----------------------------------------------
 ROS Packages for 3D Systems Geomagic Touch haptic device.
 
 Then we will explore some interesting applications with UR3 robot which is to be continued.
+
+___
 
 ## 1. Installation (Touch Driver and OpenHaptics)
 
@@ -68,31 +69,7 @@ The Touch ROS driver is originally forked from Francisco Suárez Ruiz [phantom_o
 
 ### 3.1 Tele-operation
 
-
-
-inwell:
-
-position: [0.0, -0.0655107116699, -0.0881141967773]
-
-x y z w
-
-orientation: [-0.206009197457, -0.045599176578, -0.213489973012, 0.953888335751]
-
-another:
-
-position: [-0.0076661362648, -0.00881720924377, -0.00200897359848]
-
-orientation: [-0.684970154844, -0.0119688543314, 0.00619480694556, 0.728446468771]
-
-
-
-robot home pose:
-
-position: [-0.112022, 0.29858, 0.312805]
-
-orientation: [0.999996 -0.000809807 0.0027472 0.000655318] 
-
-Geomagic.hpp:  not a class  two touch  compute angular velocity
+to be continued...
 
 
 
