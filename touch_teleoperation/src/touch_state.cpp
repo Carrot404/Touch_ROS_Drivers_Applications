@@ -41,7 +41,7 @@ private:
     int publish_rate_;
 
     GeomagicStatus *geoStatus_;
-	// boost::shared_ptr<tf::TransformListener> tf_listener_;
+	boost::shared_ptr<tf::TransformListener> tf_listener_;
 
 public:
     // Constructor and destructor
@@ -93,12 +93,13 @@ PhantomROS::PhantomROS(ros::NodeHandle nh, GeomagicStatus *state) : nh_(nh), pri
     twist_pub_ = nh_.advertise<geometry_msgs::TwistStamped>(twist_topic.c_str(), 1);  
 
     // tf_listener_ = boost::shared_ptr<tf::TransformListener>(new tf::TransformListener());
-    // try{
-    //     tf_listener_->waitForTransform("base", "stylus", ros::Time(0), ros::Duration(2));
-    // }
-    // catch(tf::TransformException &ex){
-    //     ROS_ERROR("tf listener: transform exception : %s",ex.what());
-    // }
+    tf_listener_.reset(new tf::TransformListener());
+    try{
+        tf_listener_->waitForTransform("base", "stylus", ros::Time(0), ros::Duration(2));
+    }
+    catch(tf::TransformException &ex){
+        ROS_ERROR("tf listener: transform exception : %s",ex.what());
+    }
 
     // TouchState Init
     geoStatus_ = state;

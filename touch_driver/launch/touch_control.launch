@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- GDB functionality -->
+  <arg name="debug" default="false" doc="If set to true, will start the driver inside gdb" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+  <arg name="controller_config_file" doc="Config file used for defining the ROS-Control controllers."/>
+  <arg name="kinematics_config" doc="Kinematics config file used for calibration correction. This will be used to verify the robot's calibration is matching the robot_description. Pass the same config file that is passed to the robot_description."/>
+  <arg name="tf_prefix" default="" doc="tf_prefix used for the robot."/>
+  <arg name="controllers" default="joint_state_controller scaled_pos_joint_traj_controller force_torque_sensor_controller robot_status_controller"/>
+  <arg name="stopped_controllers" default="joint_group_vel_controller forward_joint_traj_controller forward_cartesian_traj_controller"/>
+  <arg name="servoj_gain" default="2000" doc="Specify gain for servoing to position in joint space. A higher gain can sharpen the trajectory."/>
+  <arg name="servoj_lookahead_time" default="0.03" doc="Specify lookahead time for servoing to position in joint space. A longer lookahead time can smooth the trajectory."/>
+
+  <!-- Load hardware interface -->
+  <node name="ur_hardware_interface" pkg="ur_robot_driver" type="ur_robot_driver_node" output="screen" launch-prefix="$(arg launch_prefix)" required="true">
+    <rosparam command="load" file="$(arg kinematics_config)" />
+    <param name="tf_prefix" value="$(arg tf_prefix)"/>
+    <param name="servoj_gain" value="$(arg servoj_gain)"/>
+    <param name="servoj_lookahead_time" value="$(arg servoj_lookahead_time)"/>
+  </node>
+
+  <!-- Load controller settings -->
+  <rosparam file="$(arg controller_config_file)" command="load"/>
+
+  <!-- spawn controller manager -->
+  <node name="ros_control_controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+    output="screen" args="$(arg controllers)" />
+
+  <!-- load other controller -->
+  <node name="ros_control_stopped_spawner" pkg="controller_manager" type="spawner" respawn="false"
+    output="screen" args="--stopped $(arg stopped_controllers)" unless="$(eval arg('stopped_controllers') == '')"/>
+
+</launch>
