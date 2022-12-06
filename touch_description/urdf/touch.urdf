@@ -32,7 +32,7 @@
 
   <link name="base_ref" />
 
-  <joint name="waist" type="revolute" >
+  <joint name="joint1_waist" type="revolute" >
     <parent link="base" />
     <child link="torso" />
     <origin xyz="0 0 0.09" rpy="0 0 0" />
@@ -51,7 +51,7 @@
     </visual>
   </link>
 
-  <joint name="shoulder" type="revolute" >
+  <joint name="joint2_shoulder" type="revolute" >
     <parent link="torso" />
     <child link="upper_arm" />
     <origin xyz="-0.0075 0 0.035" rpy="0 0 0" />
@@ -69,7 +69,7 @@
     </visual>
   </link>
 
-  <joint name="elbow" type="revolute" >
+  <joint name="joint3_elbow" type="revolute" >
     <parent link="upper_arm" />
     <child link="lower_arm" />
     <origin xyz="0.0075 .134 0" rpy="-1.5 0 0" />
@@ -89,7 +89,7 @@
     </visual>
   </link>
 
-  <joint name="yaw" type="revolute" >
+  <joint name="joint4_yaw" type="revolute" >
     <parent link="lower_arm" />
     <child link="wrist" />
     <origin xyz="0 0.08 0" />
@@ -109,7 +109,7 @@
     </visual>
   </link>
 
-  <joint name="pitch" type="revolute" >
+  <joint name="joint5_pitch" type="revolute" >
     <parent link="wrist" />
     <child link="tip" />
     <!-- <origin xyz="0 0.0525 0" rpy="0.5 0 0" /> -->
@@ -131,7 +131,7 @@
     </visual>
   </link>
 
-  <joint name="roll" type="revolute" >
+  <joint name="joint6_roll" type="revolute" >
     <parent link="tip" />
     <child link="stylus" />
     <origin xyz="0 -0.023 0" rpy="3.14159 3.14159 0" />

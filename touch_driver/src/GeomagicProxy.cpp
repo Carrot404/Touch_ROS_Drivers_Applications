@@ -12,10 +12,10 @@
 * @brief Default contructor of GeomagicProxy class
 *
 */
-GeomagicProxy::GeomagicProxy(GeomagicStatus* state) {
-
-	geoStatus_ = state;
-	/* Cartesian space values */      
+GeomagicProxy::GeomagicProxy() 
+{
+	/* Cartesian space values */
+	this->geoStatus_ = std::make_shared<GeomagicStatus>();
 	this->geoStatus_->stylusPosition.set(0.0, 0.0, 0.0);
 	this->geoStatus_->stylusOrientation = hduQuaternion(1.0, hduVector3Dd(0.0, 0.0, 0.0));
 	this->geoStatus_->stylusLinearVelocity.set(0.0, 0.0, 0.0);

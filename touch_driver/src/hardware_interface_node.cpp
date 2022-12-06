@@ -24,6 +24,16 @@ void signalHandler(int signum)
   exit(signum);
 }
 
+void *state_update(void *ptr)
+{
+    GeomagicProxy *touchProxy = (GeomagicProxy *) ptr;
+    // std::shared_ptr<GeomagicProxy> touchProxy((GeomagicProxy*) ptr);
+    // touchProxy.reset(std::shared_ptr<void> ptr);
+    // touchProxy.get()
+    touchProxy->run();
+    return nullptr;
+}
+
 int main(int argc, char** argv)
 {
     // Set up ROS.
@@ -53,6 +63,10 @@ int main(int argc, char** argv)
     ROS_DEBUG_STREAM("initialized hw interface");
     controller_manager::ControllerManager cm(g_hw_interface.get(), nh);
 
+    // loop and update geoStatus
+    pthread_t state_thread;
+    pthread_create(&state_thread, NULL, state_update, (void*) g_hw_interface->geo_proxy_.get());
+
     // Get current time and elapsed time since last read
     timestamp = ros::Time::now();
     stopwatch_now = std::chrono::steady_clock::now();
@@ -75,7 +89,7 @@ int main(int argc, char** argv)
 
         cm.update(timestamp, period, g_hw_interface->shouldResetControllers());
 
-        g_hw_interface->write(timestamp, period);
+        // g_hw_interface->write(timestamp, period);
         // if (!control_rate.sleep())
         if (period.toSec() > expected_cycle_time)
         {

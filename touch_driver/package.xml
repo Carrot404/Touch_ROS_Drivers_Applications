@@ -50,6 +50,18 @@
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
 
+  <build_depend>roscpp</build_depend>
+  <exec_depend>roscpp</exec_depend>
+  <build_depend>controller_manager</build_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <build_depend>hardware_interface</build_depend>
+  <exec_depend>hardware_interface</exec_depend>
+  <build_depend>realtime_tools</build_depend>
+  <exec_depend>realtime_tools</exec_depend>
+  <build_depend>pluginlib</build_depend>
+  <exec_depend>pluginlib</exec_depend>
+
+
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

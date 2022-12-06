@@ -1,0 +1,35 @@
+# Settings for ros_control control loop
+hardware_control_loop:
+   loop_hz: &loop_hz 600
+
+touch_hardware_interface:
+   joints: &robot_joints
+     - joint1_waist
+     - joint2_shoulder
+     - joint3_elbow
+     - joint4_yaw
+     - joint5_pitch
+     - joint6_roll
+
+joint_state_controller:
+   type: joint_state_controller/JointStateController
+   publish_rate: *loop_hz
+   joints: *robot_joints
+
+effort_controllers:
+   type: effort_controllers/JointGroupPositionController
+   joints: *robot_joints
+
+   #!!These values have not been optimized!!
+   joint1_waist:
+      pid:  {p: 5.0,  i: 0.05, d: 0.1, i_clamp: 1}
+   joint2_shoulder:
+      pid:  {p: 5.0,  i: 0.05, d: 0.1, i_clamp: 1}
+   joint3_elbow:
+      pid:  {p: 5.0,  i: 0.05, d: 0.1, i_clamp: 1}
+   joint4_yaw:
+      pid:  {p: 5.0,  i: 0.05, d: 0.1, i_clamp: 1}
+   joint5_pitch:
+      pid:  {p: 5.0,  i: 0.05, d: 0.1, i_clamp: 1}
+   joint6_roll:
+      pid:  {p: 5.0,  i: 0.05, d: 0.1, i_clamp: 1}

@@ -16,10 +16,18 @@
 // #include <touch_driver/GeomagicProxy.h>
 #include "GeomagicProxy.h"
 
+// void *state_update(void *ptr)
+// {
+//     GeomagicProxy *touchProxy = (GeomagicProxy *) ptr;
+//     // std::shared_ptr<GeomagicProxy> touchProxy((GeomagicProxy*) ptr);
+//     // touchProxy.reset(std::shared_ptr<void> ptr);
+//     // touchProxy.get()
+//     touchProxy->run();
+//     return nullptr;
+// }
 
 namespace touch_driver
 {
-
 /*!
  * \brief The HardwareInterface class handles the interface between the ROS system and the main
  * driver. It contains the read and write methods of the main control loop and registers various ROS
@@ -66,16 +74,16 @@ public:
     *
     * \returns True, if the controllers can be switched
     */
-    virtual bool prepareSwitch(const std::list<hardware_interface::ControllerInfo>& start_list,
-                                const std::list<hardware_interface::ControllerInfo>& stop_list) override;
+    // virtual bool prepareSwitch(const std::list<hardware_interface::ControllerInfo>& start_list,
+    //                             const std::list<hardware_interface::ControllerInfo>& stop_list) override;
     /*!
     * \brief Starts and stops controllers.
     *
     * \param start_list List of controllers to start
     * \param stop_list List of controllers to stop
     */
-    virtual void doSwitch(const std::list<hardware_interface::ControllerInfo>& start_list,
-                            const std::list<hardware_interface::ControllerInfo>& stop_list) override;
+    // virtual void doSwitch(const std::list<hardware_interface::ControllerInfo>& start_list,
+    //                         const std::list<hardware_interface::ControllerInfo>& stop_list) override;
 
     /*!
     * \brief Getter for the current control frequency
@@ -91,17 +99,24 @@ public:
     */
     bool shouldResetControllers();
 
+    std::shared_ptr<GeomagicProxy> geo_proxy_;
+
 protected:
 
-    std::unique_ptr<GeomagicProxy> geo_proxy_;
+    // TODO: shared_ptr
+    // std::shared_ptr<GeomagicProxy> geo_proxy_;
+    // GeomagicProxy *geo_proxy_;
+    // GeomagicProxy geo_proxy_;
+
 
     hardware_interface::JointStateInterface jnt_state_interface_;
-    hardware_interface::EffortJointInterface jnt_eff_interface_;
+    hardware_interface::EffortJointInterface jnt_effort_interface_;
     
     std::vector<std::string> joint_names_;
     std::vector<double> joint_positions_;
     std::vector<double> joint_velocities_;
     std::vector<double> joint_efforts_;
+    std::vector<double> joint_effort_command_;
 
 
 

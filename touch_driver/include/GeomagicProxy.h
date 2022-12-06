@@ -9,6 +9,7 @@
 #define GEOMAGICPROXY_HPP_
 
 #include <unistd.h>
+#include <memory>
 #include <vector>
 #include <eigen3/Eigen/Dense>
 
@@ -155,7 +156,7 @@ public:
 	* @brief Default contructor of GeomagicProxy class
 	*
 	*/
-	GeomagicProxy(GeomagicStatus* state);
+	GeomagicProxy();
 
 	/**
 	* @brief Default destroyer of GeomagicProxy class
@@ -330,18 +331,24 @@ public:
 	*/
 	double getControlFrequency() { return this->hdrate_; }
 
+	std::shared_ptr<GeomagicStatus> getDataPackage() {return geoStatus_;}
+
 
 private:
 
 	HHD dvcHandle_;								//!< OpenHaptics device handler
 	HDSchedulerHandle schHandle_;				//!< OpenHaptics scheduler handler
 
-	GeomagicStatus* geoStatus_;					//!< Structure containing the main quantities defining the state of the haptic device (see above)
+	std::shared_ptr<GeomagicStatus> geoStatus_;
+	// GeomagicStatus* geoStatus_;					//!< Structure containing the main quantities defining the state of the haptic device (see above)
 	HDUtilityData hdUtils_;						//!< Structure containing some utility variables necessary to process linear and angular velocities
 
 	bool available_;					     	//!< Flag stating if the external system is available
 	bool running_;					    	    //!< Flag stating if the main loop of the system is running
 	double hdrate_;                             //!< HD_UPDATE_RATE
+
+	// std::unique_ptr<GeomagicStatus> geoStatus_;
+
 };
 
 #endif // GEOMAGICPROXY_HPP_
