@@ -17,6 +17,13 @@ HardwareInterface::HardwareInterface()
     , joint_velocities_(6)
     , joint_efforts_(6)
     , joint_effort_command_(6)
+    , joint_position_command_(6)
+    , effort_controller_running_(false)
+    , velocity_controller_running_(false)
+    , position_controller_running_(false)
+    , robot_program_running_(true)
+    , controller_reset_necessary_(false)
+    , controllers_initialized_(false)
 {
 }
 
@@ -52,9 +59,12 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
 
     // Create joint effort control interface
     jnt_effort_interface_.registerHandle(
-        hardware_interface::JointHandle(jnt_state_interface_.getHandle(joint_names_[i]), &joint_effort_command_[i]));  
+        hardware_interface::JointHandle(jnt_state_interface_.getHandle(joint_names_[i]), &joint_effort_command_[i]));
     
-    
+    // Create joint position control interface
+    jnt_position_interface_.registerHandle(
+        hardware_interface::JointHandle(jnt_state_interface_.getHandle(joint_names_[i]), &joint_position_command_[i]));
+
   }
 
   // Register interfaces
@@ -82,7 +92,6 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
 void HardwareInterface::read(const ros::Time& time, const ros::Duration& period)
 {
   std::shared_ptr<GeomagicStatus> state = geo_proxy_->getDataPackage();
-  // std::shared_ptr<GeomagicStatus> state = geo_proxy_.getDataPackage();
   for (std::size_t i = 0; i < joint_names_.size(); i++)
   {
     joint_positions_[i] = state->jointPosition[i];
@@ -94,10 +103,86 @@ void HardwareInterface::read(const ros::Time& time, const ros::Duration& period)
 
 void HardwareInterface::write(const ros::Time& time, const ros::Duration& period)
 {
-  // std::
+  std::shared_ptr<GeomagicStatus> state = geo_proxy_->getDataPackage();
+  for (std::size_t i = 0; i < 3; i++)
+  {
+    state->force[i] = joint_effort_command_[i];
+  }
+  // state->force[0] = joint_effort_command_[0];
+  
 }
 
-double HardwareInterface::getControlFrequency()
+bool HardwareInterface::prepareSwitch(const std::list<hardware_interface::ControllerInfo>& start_list,
+                                      const std::list<hardware_interface::ControllerInfo>& stop_list)
+{
+  bool ret_val = true;
+  if (controllers_initialized_ && !isRobotProgramRunning() && !start_list.empty())
+  {
+    for (auto& controller : start_list)
+    {
+      if (!controller.claimed_resources.empty())
+      {
+        ROS_ERROR_STREAM("Robot control is currently inactive. Starting controllers that claim resources is currently "
+                         "not possible. Not starting controller '"
+                         << controller.name << "'");
+        ret_val = false;
+      }
+    }
+  }
+
+  controllers_initialized_ = true;
+  return ret_val;
+}
+
+void HardwareInterface::doSwitch(const std::list<hardware_interface::ControllerInfo>& start_list,
+                                 const std::list<hardware_interface::ControllerInfo>& stop_list)
+{
+
+  for (auto& controller_it : stop_list)
+  {
+    for (auto& resource_it : controller_it.claimed_resources)
+    {
+      if (checkControllerClaims(resource_it.resources))
+      {
+        if (resource_it.hardware_interface == "hardware_interface::EffortJointInterface")
+        {
+          effort_controller_running_ = false;
+        }
+        if (resource_it.hardware_interface == "hardware_interface::VelocityJointInterface")
+        {
+          velocity_controller_running_ = false;
+        }
+        if (resource_it.hardware_interface == "hardware_interface::PositionJointInterface")
+        {
+          position_controller_running_ = false;
+        }
+      }
+    }
+  }
+  for (auto& controller_it : start_list)
+  {
+    for (auto& resource_it : controller_it.claimed_resources)
+    {
+      if (checkControllerClaims(resource_it.resources))
+      {
+        if (resource_it.hardware_interface == "hardware_interface::EffortJointInterface")
+        {
+          effort_controller_running_ = true;
+        }
+        if (resource_it.hardware_interface == "hardware_interface::VelocityJointInterface")
+        {
+          velocity_controller_running_ = true;
+        }
+        if (resource_it.hardware_interface == "hardware_interface::PositionJointInterface")
+        {
+          position_controller_running_ = true;
+        }
+      }
+    }
+  }
+}
+
+double HardwareInterface::getControlFrequency() //TODO:
 {
   if (geo_proxy_ != nullptr)
   {
@@ -105,6 +190,11 @@ double HardwareInterface::getControlFrequency()
   }
   // return geo_proxy_.getControlFrequency();
   throw std::runtime_error("GeomagicProxy is not initialized");
+}
+
+bool HardwareInterface::isRobotProgramRunning() const // TODO:
+{
+  return robot_program_running_;
 }
 
 bool HardwareInterface::shouldResetControllers()
@@ -118,6 +208,21 @@ bool HardwareInterface::shouldResetControllers()
   {
     return false;
   }
+}
+
+bool HardwareInterface::checkControllerClaims(const std::set<std::string>& claimed_resources)
+{
+  for (const std::string& it : joint_names_)
+  {
+    for (const std::string& jt : claimed_resources)
+    {
+      if (it == jt)
+      {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 

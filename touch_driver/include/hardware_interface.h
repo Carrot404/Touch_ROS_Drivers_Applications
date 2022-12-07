@@ -74,16 +74,16 @@ public:
     *
     * \returns True, if the controllers can be switched
     */
-    // virtual bool prepareSwitch(const std::list<hardware_interface::ControllerInfo>& start_list,
-    //                             const std::list<hardware_interface::ControllerInfo>& stop_list) override;
+    virtual bool prepareSwitch(const std::list<hardware_interface::ControllerInfo>& start_list,
+                                const std::list<hardware_interface::ControllerInfo>& stop_list) override;
     /*!
     * \brief Starts and stops controllers.
     *
     * \param start_list List of controllers to start
     * \param stop_list List of controllers to stop
     */
-    // virtual void doSwitch(const std::list<hardware_interface::ControllerInfo>& start_list,
-    //                         const std::list<hardware_interface::ControllerInfo>& stop_list) override;
+    virtual void doSwitch(const std::list<hardware_interface::ControllerInfo>& start_list,
+                            const std::list<hardware_interface::ControllerInfo>& stop_list) override;
 
     /*!
     * \brief Getter for the current control frequency
@@ -93,15 +93,30 @@ public:
     double getControlFrequency();
 
     /*!
+    * \brief Checks if the URCaps program is running on the robot.
+    *
+    * \returns True, if the program is currently running, false otherwise.
+    */
+    bool isRobotProgramRunning() const;
+
+    /*!
     * \brief Checks if a reset of the ROS controllers is necessary.
     *
     * \returns Necessity of ROS controller reset
     */
     bool shouldResetControllers();
 
-    std::shared_ptr<GeomagicProxy> geo_proxy_;
+    std::shared_ptr<GeomagicProxy> geo_proxy_; //TODO:
 
 protected:
+
+    /*!
+    * \brief Checks whether a resource list contains joints from this hardware interface
+    *
+    * True is returned as soon as one joint name from claimed_resources matches a joint from this
+    * hardware interface.
+    */
+    bool checkControllerClaims(const std::set<std::string>& claimed_resources);
 
     // TODO: shared_ptr
     // std::shared_ptr<GeomagicProxy> geo_proxy_;
@@ -111,15 +126,23 @@ protected:
 
     hardware_interface::JointStateInterface jnt_state_interface_;
     hardware_interface::EffortJointInterface jnt_effort_interface_;
+    hardware_interface::PositionJointInterface jnt_position_interface_;
+
     
     std::vector<std::string> joint_names_;
     std::vector<double> joint_positions_;
     std::vector<double> joint_velocities_;
     std::vector<double> joint_efforts_;
     std::vector<double> joint_effort_command_;
+    std::vector<double> joint_position_command_;
 
 
+    bool effort_controller_running_;
+    bool velocity_controller_running_;
+    bool position_controller_running_;
 
+
+    bool robot_program_running_;
 
     bool controller_reset_necessary_;
     bool controllers_initialized_;

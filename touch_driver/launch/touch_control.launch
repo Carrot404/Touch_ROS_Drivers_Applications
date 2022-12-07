@@ -8,7 +8,7 @@
 
   <arg name="controller_config_file" default="$(find touch_driver)/config/touch_controllers.yaml" doc="Config file used for defining the ROS-Control controllers."/>
   <arg name="tf_prefix" default="Touch" doc="tf_prefix used for the Touch."/>
-  <arg name="controllers" default="joint_state_controller effort_controllers"/>
+  <arg name="controllers" default="joint_state_controller position_controllers"/>
   <!-- <arg name="stopped_controllers" default="joint_group_vel_controller forward_joint_traj_controller forward_cartesian_traj_controller"/> -->
   <!-- <arg name="servoj_gain" default="2000" doc="Specify gain for servoing to position in joint space. A higher gain can sharpen the trajectory."/> -->
   <!-- <arg name="servoj_lookahead_time" default="0.03" doc="Specify lookahead time for servoing to position in joint space. A longer lookahead time can smooth the trajectory."/> -->

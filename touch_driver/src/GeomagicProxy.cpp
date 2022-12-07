@@ -357,7 +357,7 @@ HDCallbackCode forceFeedbackCallback(void* data) {
 	HDErrorInfo error;
 	hdBeginFrame(device->dvcHandle_);
 
-	hdSetDoublev(HD_CURRENT_FORCE, device->geoStatus_->force);
+	hdSetDoublev(HD_CURRENT_JOINT_TORQUE, device->geoStatus_->force);
 	hdEndFrame(device->dvcHandle_);
 
 	if (HD_DEVICE_ERROR(error = hdGetError()))

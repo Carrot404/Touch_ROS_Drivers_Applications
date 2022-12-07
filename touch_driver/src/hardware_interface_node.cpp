@@ -26,6 +26,7 @@ void signalHandler(int signum)
 
 void *state_update(void *ptr)
 {
+    // TODO: is there a problem when transfer shared_ptr to void*
     GeomagicProxy *touchProxy = (GeomagicProxy *) ptr;
     // std::shared_ptr<GeomagicProxy> touchProxy((GeomagicProxy*) ptr);
     // touchProxy.reset(std::shared_ptr<void> ptr);
@@ -89,7 +90,7 @@ int main(int argc, char** argv)
 
         cm.update(timestamp, period, g_hw_interface->shouldResetControllers());
 
-        // g_hw_interface->write(timestamp, period);
+        g_hw_interface->write(timestamp, period);
         // if (!control_rate.sleep())
         if (period.toSec() > expected_cycle_time)
         {
