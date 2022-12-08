@@ -7,9 +7,9 @@
   <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
 
   <arg name="controller_config_file" default="$(find touch_driver)/config/touch_controllers.yaml" doc="Config file used for defining the ROS-Control controllers."/>
+  <arg name="controllers" default="joint_state_controller effort_controllers"/>
+  <arg name="stopped_controllers" default=""/>
   <arg name="tf_prefix" default="Touch" doc="tf_prefix used for the Touch."/>
-  <arg name="controllers" default="joint_state_controller position_controllers"/>
-  <!-- <arg name="stopped_controllers" default="joint_group_vel_controller forward_joint_traj_controller forward_cartesian_traj_controller"/> -->
   <!-- <arg name="servoj_gain" default="2000" doc="Specify gain for servoing to position in joint space. A higher gain can sharpen the trajectory."/> -->
   <!-- <arg name="servoj_lookahead_time" default="0.03" doc="Specify lookahead time for servoing to position in joint space. A longer lookahead time can smooth the trajectory."/> -->
   <arg name="robot_description_file" default="$(find touch_description)/launch/load_touch.launch)"/>
@@ -17,18 +17,15 @@
   <!-- Load controller settings -->
   <rosparam file="$(arg controller_config_file)" command="load"/>
 
-  <param name="robot_description" command="$(find xacro)/xacro '$(find touch_description)/urdf/touch.urdf'" />
+  <!-- <param name="robot_description" command="$(find xacro)/xacro '$(find touch_description)/urdf/touch.urdf'" /> -->
 
-  <!-- <include file="$(arg robot_description_file)">
-  </include> -->
+  <include file="$(arg robot_description_file)">
+  </include>
 
   <!-- Load hardware interface -->
   <node name="touch_hardware_interface" pkg="touch_driver" type="touch_driver_node" output="screen" launch-prefix="$(arg launch_prefix)" required="true">
     <param name="tf_prefix" value="$(arg tf_prefix)" />
     <remap from="joint_states" to="$(arg tf_prefix)/joint_states" />
-
-    <!-- <param name="servoj_gain" value="$(arg servoj_gain)"/> -->
-    <!-- <param name="servoj_lookahead_time" value="$(arg servoj_lookahead_time)"/> -->
   </node>
 
   <!-- spawn controller manager -->
@@ -37,7 +34,7 @@
   </node>
 
   <!-- load other controller -->
-  <!-- <node name="ros_control_stopped_spawner" pkg="controller_manager" type="spawner" respawn="false"
-    output="screen" args="stopped $(arg stopped_controllers)" unless="$(eval arg('stopped_controllers') == '')"/> -->
+  <node name="ros_control_stopped_spawner" pkg="controller_manager" type="spawner" respawn="false"
+    output="screen" args="stopped $(arg stopped_controllers)" unless="$(eval arg('stopped_controllers') == '')"/>
 
 </launch>

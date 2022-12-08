@@ -9,7 +9,7 @@
 
 #include <csignal>
 // #include <touch_driver/hardware_interface.h>
-#include "hardware_interface.h"
+#include "../include/hardware_interface.h"
 
 std::unique_ptr<touch_driver::HardwareInterface> g_hw_interface;
 
@@ -18,19 +18,13 @@ void signalHandler(int signum)
   std::cout << "Interrupt signal (" << signum << ") received.\n";
 
   g_hw_interface.reset();
-  // cleanup and close up stuff here
-  // terminate program
 
   exit(signum);
 }
 
 void *state_update(void *ptr)
 {
-    // TODO: is there a problem when transfer shared_ptr to void*
-    GeomagicProxy *touchProxy = (GeomagicProxy *) ptr;
-    // std::shared_ptr<GeomagicProxy> touchProxy((GeomagicProxy*) ptr);
-    // touchProxy.reset(std::shared_ptr<void> ptr);
-    // touchProxy.get()
+    std::shared_ptr<GeomagicProxy> touchProxy((GeomagicProxy*) ptr);
     touchProxy->run();
     return nullptr;
 }
@@ -66,7 +60,7 @@ int main(int argc, char** argv)
 
     // loop and update geoStatus
     pthread_t state_thread;
-    pthread_create(&state_thread, NULL, state_update, (void*) g_hw_interface->geo_proxy_.get());
+    pthread_create(&state_thread, NULL, state_update, (void*) g_hw_interface->getptrGeoProxy().get());
 
     // Get current time and elapsed time since last read
     timestamp = ros::Time::now();

@@ -17,10 +17,7 @@ HardwareInterface::HardwareInterface()
     , joint_velocities_(6)
     , joint_efforts_(6)
     , joint_effort_command_(6)
-    , joint_position_command_(6)
     , effort_controller_running_(false)
-    , velocity_controller_running_(false)
-    , position_controller_running_(false)
     , robot_program_running_(true)
     , controller_reset_necessary_(false)
     , controllers_initialized_(false)
@@ -61,10 +58,6 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
     jnt_effort_interface_.registerHandle(
         hardware_interface::JointHandle(jnt_state_interface_.getHandle(joint_names_[i]), &joint_effort_command_[i]));
     
-    // Create joint position control interface
-    jnt_position_interface_.registerHandle(
-        hardware_interface::JointHandle(jnt_state_interface_.getHandle(joint_names_[i]), &joint_position_command_[i]));
-
   }
 
   // Register interfaces
@@ -83,12 +76,6 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
   return true;
 }
 
-// void *HardwareInterface::state_update(void *ptr)
-// {
-//   geo_proxy_->run();
-//   return nullptr;
-// }
-
 void HardwareInterface::read(const ros::Time& time, const ros::Duration& period)
 {
   std::shared_ptr<GeomagicStatus> state = geo_proxy_->getDataPackage();
@@ -103,10 +90,17 @@ void HardwareInterface::read(const ros::Time& time, const ros::Duration& period)
 
 void HardwareInterface::write(const ros::Time& time, const ros::Duration& period)
 {
+  if (robot_program_running_)
+  {
+    if (effort_controller_running_)
+    {
+      
+    }
+  }
   std::shared_ptr<GeomagicStatus> state = geo_proxy_->getDataPackage();
   for (std::size_t i = 0; i < 3; i++)
   {
-    state->force[i] = joint_effort_command_[i];
+    // state->force[i] = joint_effort_command_[i];
   }
   // state->force[0] = joint_effort_command_[0];
   
@@ -148,14 +142,6 @@ void HardwareInterface::doSwitch(const std::list<hardware_interface::ControllerI
         {
           effort_controller_running_ = false;
         }
-        if (resource_it.hardware_interface == "hardware_interface::VelocityJointInterface")
-        {
-          velocity_controller_running_ = false;
-        }
-        if (resource_it.hardware_interface == "hardware_interface::PositionJointInterface")
-        {
-          position_controller_running_ = false;
-        }
       }
     }
   }
@@ -169,14 +155,6 @@ void HardwareInterface::doSwitch(const std::list<hardware_interface::ControllerI
         {
           effort_controller_running_ = true;
         }
-        if (resource_it.hardware_interface == "hardware_interface::VelocityJointInterface")
-        {
-          velocity_controller_running_ = true;
-        }
-        if (resource_it.hardware_interface == "hardware_interface::PositionJointInterface")
-        {
-          position_controller_running_ = true;
-        }
       }
     }
   }
@@ -186,7 +164,7 @@ double HardwareInterface::getControlFrequency() //TODO:
 {
   if (geo_proxy_ != nullptr)
   {
-    return geo_proxy_->getControlFrequency();
+    return 500;
   }
   // return geo_proxy_.getControlFrequency();
   throw std::runtime_error("GeomagicProxy is not initialized");

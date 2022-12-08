@@ -18,7 +18,10 @@ joint_state_controller:
 
 effort_controllers:
    type: effort_controllers/JointGroupPositionController
-   joints: *robot_joints
+   joints: 
+     - joint1_waist
+     - joint2_shoulder
+     - joint3_elbow
    #!!These values have not been optimized!!
    joint1_waist:
       pid:  {p: 1000.0,  i: 0.05, d: 10.0}
@@ -26,12 +29,8 @@ effort_controllers:
       pid:  {p: 1000.0,  i: 0.05, d: 10.0}
    joint3_elbow:
       pid:  {p: 1000.0,  i: 0.05, d: 10.0}
-   joint4_yaw:
-      pid:  {p: 1000.0,  i: 0.05, d: 10.0}
-   joint5_pitch:
-      pid:  {p: 1000.0,  i: 0.05, d: 10.0}
-   joint6_roll:
-      pid:  {p: 1000.0,  i: 0.05, d: 10.0}
+
+# cart
 
 # effort_controllers:
 #    type: effort_controllers/JointPositionController     

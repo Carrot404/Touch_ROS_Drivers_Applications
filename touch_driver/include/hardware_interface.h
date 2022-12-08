@@ -16,16 +16,6 @@
 // #include <touch_driver/GeomagicProxy.h>
 #include "GeomagicProxy.h"
 
-// void *state_update(void *ptr)
-// {
-//     GeomagicProxy *touchProxy = (GeomagicProxy *) ptr;
-//     // std::shared_ptr<GeomagicProxy> touchProxy((GeomagicProxy*) ptr);
-//     // touchProxy.reset(std::shared_ptr<void> ptr);
-//     // touchProxy.get()
-//     touchProxy->run();
-//     return nullptr;
-// }
-
 namespace touch_driver
 {
 /*!
@@ -106,7 +96,12 @@ public:
     */
     bool shouldResetControllers();
 
-    std::shared_ptr<GeomagicProxy> geo_proxy_; //TODO:
+    /*!
+    * \brief obtain the pointer of Geomagic Proxy
+    *
+    * \returns pointer to the Geomagic Proxy
+    */
+    std::shared_ptr<GeomagicProxy> getptrGeoProxy(){return geo_proxy_;}
 
 protected:
 
@@ -118,29 +113,18 @@ protected:
     */
     bool checkControllerClaims(const std::set<std::string>& claimed_resources);
 
-    // TODO: shared_ptr
-    // std::shared_ptr<GeomagicProxy> geo_proxy_;
-    // GeomagicProxy *geo_proxy_;
-    // GeomagicProxy geo_proxy_;
-
+    std::shared_ptr<GeomagicProxy> geo_proxy_;
 
     hardware_interface::JointStateInterface jnt_state_interface_;
     hardware_interface::EffortJointInterface jnt_effort_interface_;
-    hardware_interface::PositionJointInterface jnt_position_interface_;
-
     
     std::vector<std::string> joint_names_;
     std::vector<double> joint_positions_;
     std::vector<double> joint_velocities_;
     std::vector<double> joint_efforts_;
     std::vector<double> joint_effort_command_;
-    std::vector<double> joint_position_command_;
-
 
     bool effort_controller_running_;
-    bool velocity_controller_running_;
-    bool position_controller_running_;
-
 
     bool robot_program_running_;
 
@@ -150,20 +134,6 @@ protected:
     std::string tf_prefix_;
 
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 } // namespace touch_driver
 
