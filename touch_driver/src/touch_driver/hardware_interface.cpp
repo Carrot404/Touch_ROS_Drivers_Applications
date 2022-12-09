@@ -5,8 +5,7 @@
  */
 
 #include <pluginlib/class_list_macros.hpp>
-// #include <touch_driver/hardware_interface.h>
-#include "../include/hardware_interface.h"
+#include "../../include/touch_driver/hardware_interface.h"
 
 namespace touch_driver
 {
@@ -22,6 +21,12 @@ HardwareInterface::HardwareInterface()
     , controller_reset_necessary_(false)
     , controllers_initialized_(false)
 {
+}
+
+HardwareInterface::~HardwareInterface()
+{
+  geo_proxy_->stop();
+  geo_proxy_.reset();
 }
 
 bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh)
@@ -63,6 +68,11 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
   // Register interfaces
   registerInterface(&jnt_state_interface_);
   registerInterface(&jnt_effort_interface_);
+
+  // TODO:
+  tcp_pose_pub_.reset(new realtime_tools::RealtimePublisher<tf2_msgs::TFMessage>(robot_hw_nh, "/tf", 100));
+  tcp_transform_.header.frame_id = "base_ref";
+  tcp_transform_.child_frame_id = "stylus_ref";
   
 
 
@@ -78,13 +88,21 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
 
 void HardwareInterface::read(const ros::Time& time, const ros::Duration& period)
 {
-  std::shared_ptr<GeomagicStatus> state = geo_proxy_->getDataPackage();
+  std::shared_ptr<GeomagicStatus> geo_state = geo_proxy_->getDataPackage();
+
+  // publish to Topic /joint_states
   for (std::size_t i = 0; i < joint_names_.size(); i++)
   {
-    joint_positions_[i] = state->jointPosition[i];
-    joint_velocities_[i] = state->jointVelocity[i];
-    // joint_efforts_[i] = state->j
+    joint_positions_[i] = geo_state->jointPosition[i];
+    joint_velocities_[i] = geo_state->jointVelocity[i];
+    if (i<3){
+      joint_efforts_[i] = geo_state->jointEffort[i];
+    }
   }
+
+  //
+
+
 
 }
 
@@ -185,6 +203,19 @@ bool HardwareInterface::shouldResetControllers()
   else
   {
     return false;
+  }
+}
+
+void HardwareInterface::publishPose()
+{
+  if (tcp_pose_pub_)
+  {
+    if (tcp_pose_pub_->trylock())
+    {
+      tcp_pose_pub_->msg_.transforms.clear();
+      tcp_pose_pub_->msg_.transforms.push_back(tcp_transform_);
+      tcp_pose_pub_->unlockAndPublish();
+    }
   }
 }
 

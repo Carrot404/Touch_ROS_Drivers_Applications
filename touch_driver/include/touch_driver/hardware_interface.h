@@ -10,11 +10,10 @@
 #include <hardware_interface/robot_hw.h>
 #include <hardware_interface/joint_state_interface.h>
 #include <hardware_interface/joint_command_interface.h>
-
+#include <tf2_msgs/TFMessage.h>
 #include <realtime_tools/realtime_publisher.h>
 
-// #include <touch_driver/GeomagicProxy.h>
-#include "GeomagicProxy.h"
+#include "./GeomagicProxy.h"
 
 namespace touch_driver
 {
@@ -30,7 +29,7 @@ public:
     * \brief Creates a new HardwareInterface object.
     */
     HardwareInterface();
-    virtual ~HardwareInterface() = default;
+    virtual ~HardwareInterface();
     /*!
     * \brief Handles the setup functionality for the ROS interface. This includes parsing ROS
     * parameters, creating interfaces, starting the main driver and advertising ROS services.
@@ -113,6 +112,13 @@ protected:
     */
     bool checkControllerClaims(const std::set<std::string>& claimed_resources);
 
+    /*!
+    * \brief Publishes the tool pose to the tf system
+    *
+    * Requires extractToolPose() to be run first.
+    */
+    void publishPose();
+
     std::shared_ptr<GeomagicProxy> geo_proxy_;
 
     hardware_interface::JointStateInterface jnt_state_interface_;
@@ -123,6 +129,11 @@ protected:
     std::vector<double> joint_velocities_;
     std::vector<double> joint_efforts_;
     std::vector<double> joint_effort_command_;
+
+
+    geometry_msgs::TransformStamped tcp_transform_;
+    std::unique_ptr<realtime_tools::RealtimePublisher<tf2_msgs::TFMessage>> tcp_pose_pub_;
+
 
     bool effort_controller_running_;
 

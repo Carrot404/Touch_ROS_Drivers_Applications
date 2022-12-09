@@ -8,8 +8,8 @@
 #include <controller_manager/controller_manager.h>
 
 #include <csignal>
-// #include <touch_driver/hardware_interface.h>
-#include "../include/hardware_interface.h"
+#include <touch_driver/hardware_interface.h>
+
 
 std::unique_ptr<touch_driver::HardwareInterface> g_hw_interface;
 
@@ -68,7 +68,7 @@ int main(int argc, char** argv)
     period.fromSec(std::chrono::duration_cast<std::chrono::duration<double>>(stopwatch_now - stopwatch_last).count());
     stopwatch_last = stopwatch_now;
 
-    double expected_cycle_time = 1.0 / (static_cast<double>(g_hw_interface->getControlFrequency()));
+    // double expected_cycle_time = 1.0 / (static_cast<double>(g_hw_interface->getControlFrequency()));
 
     // Run as fast as possible
     while (ros::ok())
@@ -86,10 +86,10 @@ int main(int argc, char** argv)
 
         g_hw_interface->write(timestamp, period);
         // if (!control_rate.sleep())
-        if (period.toSec() > expected_cycle_time)
+        // if (period.toSec() > expected_cycle_time)
         {
-        // ROS_WARN_STREAM("Could not keep cycle rate of " << expected_cycle_time * 1000 << "ms");
-        // ROS_WARN_STREAM("Actual cycle time:" << period.toNSec() / 1000000.0 << "ms");
+            // ROS_WARN_STREAM("Could not keep cycle rate of " << expected_cycle_time * 1000 << "ms");
+            // ROS_WARN_STREAM("Actual cycle time:" << period.toNSec() / 1000000.0 << "ms");
         }
     }
 

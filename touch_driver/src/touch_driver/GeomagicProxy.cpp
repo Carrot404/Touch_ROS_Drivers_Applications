@@ -6,7 +6,7 @@
  */
 
 // Project Header files
-#include "GeomagicProxy.h"
+#include "../../include/touch_driver/GeomagicProxy.h"
 
 GeomagicProxy::GeomagicProxy() 
 {

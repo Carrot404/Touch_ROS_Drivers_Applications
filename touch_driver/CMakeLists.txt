@@ -107,10 +107,16 @@ find_package(catkin REQUIRED
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
     INCLUDE_DIRS 
-    include
-#  LIBRARIES touch_driver
-#  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS system_lib
+        include
+    LIBRARIES 
+        ${PROJECT_NAME}
+    CATKIN_DEPENDS 
+        roscpp
+        controller_manager
+        hardware_interface
+        realtime_tools
+        pluginlib
+    DEPENDS
 )
 
 ###########
@@ -125,9 +131,18 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/touch_driver.cpp
-# )
+add_library(${PROJECT_NAME}
+  src/${PROJECT_NAME}/hardware_interface.cpp
+  src/${PROJECT_NAME}/GeomagicProxy.cpp
+)
+target_link_libraries(${PROJECT_NAME} HD HDU ${catkin_LIBRARIES})
+
+## Declare a C++ executable
+add_executable(touch_driver_node 
+    src/hardware_interface_node.cpp
+)
+target_link_libraries(touch_driver_node ${PROJECT_NAME} ${catkin_LIBRARIES})
+
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -138,13 +153,6 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/touch_driver_node.cpp)
-add_executable(touch_driver_node 
-    src/hardware_interface_node.cpp
-    src/hardware_interface.cpp
-    src/GeomagicProxy.cpp
-)
-target_link_libraries(touch_driver_node HD HDU ${catkin_LIBRARIES})
-
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

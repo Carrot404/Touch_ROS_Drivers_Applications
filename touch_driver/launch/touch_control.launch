@@ -10,17 +10,13 @@
   <arg name="controllers" default="joint_state_controller effort_controllers"/>
   <arg name="stopped_controllers" default=""/>
   <arg name="tf_prefix" default="Touch" doc="tf_prefix used for the Touch."/>
-  <!-- <arg name="servoj_gain" default="2000" doc="Specify gain for servoing to position in joint space. A higher gain can sharpen the trajectory."/> -->
-  <!-- <arg name="servoj_lookahead_time" default="0.03" doc="Specify lookahead time for servoing to position in joint space. A longer lookahead time can smooth the trajectory."/> -->
-  <arg name="robot_description_file" default="$(find touch_description)/launch/load_touch.launch)"/>
+  
+  <!-- Load touch URDF -->
+  <include file="$(find touch_description)/launch/load_touch.launch" >
+	</include>
  
   <!-- Load controller settings -->
   <rosparam file="$(arg controller_config_file)" command="load"/>
-
-  <!-- <param name="robot_description" command="$(find xacro)/xacro '$(find touch_description)/urdf/touch.urdf'" /> -->
-
-  <include file="$(arg robot_description_file)">
-  </include>
 
   <!-- Load hardware interface -->
   <node name="touch_hardware_interface" pkg="touch_driver" type="touch_driver_node" output="screen" launch-prefix="$(arg launch_prefix)" required="true">

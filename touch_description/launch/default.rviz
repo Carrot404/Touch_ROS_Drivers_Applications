@@ -7,11 +7,8 @@ Panels:
         - /Global Options1
         - /Status1
         - /RobotModel1/Links1
+        - /TF1
         - /TF1/Frames1
-        - /TF1/Tree1/base1
-        - /TF1/Tree1/base1/torso1
-        - /TF1/Tree1/base1/torso1/upper_arm1
-        - /TF1/Tree1/base1/torso1/upper_arm1/lower_arm1
       Splitter Ratio: 0.658823549747467
     Tree Height: 549
   - Class: rviz/Selection
@@ -61,73 +58,44 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: true
+      Enabled: false
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        lower_arm:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        stylus:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        tip:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        torso:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        upper_arm:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wrist:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: true
+      Value: false
       Visual Enabled: true
     - Class: rviz/TF
       Enabled: true
       Frame Timeout: 15
       Frames:
-        All Enabled: true
+        All Enabled: false
         base:
+          Value: false
+        base_ref:
           Value: true
         lower_arm:
-          Value: true
+          Value: false
+        probe:
+          Value: false
         stylus:
+          Value: false
+        stylus_ref:
           Value: true
         tip:
-          Value: true
+          Value: false
         torso:
-          Value: true
+          Value: false
         upper_arm:
-          Value: true
+          Value: false
         wrist:
-          Value: true
+          Value: false
       Marker Scale: 0.4000000059604645
       Name: TF
       Show Arrows: true
@@ -135,13 +103,17 @@ Visualization Manager:
       Show Names: true
       Tree:
         base:
+          base_ref:
+            {}
           torso:
             upper_arm:
               lower_arm:
                 wrist:
                   tip:
                     stylus:
-                      {}
+                      stylus_ref:
+                        probe:
+                          {}
       Update Interval: 0
       Value: true
   Enabled: true
@@ -187,10 +159,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.42539799213409424
+      Pitch: 0.38539794087409973
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 6.1785759925842285
+      Yaw: 0.3553909659385681
     Saved: ~
 Window Geometry:
   Displays:
@@ -208,5 +180,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1267
-  X: 645
-  Y: 305
+  X: 1057
+  Y: 265
