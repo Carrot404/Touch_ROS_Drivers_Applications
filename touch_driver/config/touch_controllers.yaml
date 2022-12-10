@@ -1,6 +1,6 @@
 # Settings for ros_control control loop
 hardware_control_loop:
-   loop_hz: &loop_hz 600
+   loop_hz: &loop_hz 500
 
 touch_hardware_interface:
    joints: &robot_joints
@@ -16,7 +16,10 @@ joint_state_controller:
    publish_rate: *loop_hz
    joints: *robot_joints
 
-effort_controllers:
+# pos_state_controller:
+
+
+joint_effort_controllers:
    type: effort_controllers/JointGroupPositionController
    joints: 
      - joint1_waist
@@ -24,11 +27,11 @@ effort_controllers:
      - joint3_elbow
    #!!These values have not been optimized!!
    joint1_waist:
-      pid:  {p: 1000.0,  i: 0.05, d: 10.0}
+      pid:  {p: 1000.0,  i: 0.05, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0}
    joint2_shoulder:
-      pid:  {p: 1000.0,  i: 0.05, d: 10.0}
+      pid:  {p: 1000.0,  i: 0.05, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0}
    joint3_elbow:
-      pid:  {p: 1000.0,  i: 0.05, d: 10.0}
+      pid:  {p: 1000.0,  i: 0.05, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0}
 
 # cart
 

@@ -94,7 +94,7 @@ GeomagicProxy::GeomagicProxy()
 
 	this->setAvailable(true);
 	this->setRunning(false);
-	this->setJointForce();
+	this->setJointForceMode();
 
 	this->command_.set(0.0, 0.0, 0.0);
 }
@@ -476,13 +476,16 @@ void GeomagicProxy::updateJointVelocities()
 
 void GeomagicProxy::setForceCommand(double Fx, double Fy, double Fz)
 {
-	this->command_ = hduVector3Dd(Fx, Fy, Fz);
+	this->command_ = hduVector3Dd(-Fx, Fy, Fz);
 }
 
 void GeomagicProxy::setForceCommand(std::vector<double> vec)
 {
-	for(int i=0; i<3; i++){
-		this->command_[i] = vec[i];
-	}
+	// for(int i=0; i<3; i++){
+	// 	this->command_[i] = vec[i];
+	// }
+	this->command_[0] = -vec[0];
+	this->command_[1] = vec[1];
+	this->command_[2] = vec[2];
 }
 

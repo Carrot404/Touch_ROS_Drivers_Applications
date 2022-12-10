@@ -1,4 +1,4 @@
-int32 grey_button
-int32 white_button
-int32 grey_button_action
-int32 white_button_action
+bool grey_button
+bool white_button
+bool grey_button_action
+bool white_button_action

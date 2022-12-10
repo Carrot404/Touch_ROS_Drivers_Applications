@@ -185,13 +185,13 @@ public:
 	* @brief Set function
 	* Set to Joint space haptic force on the Geomagic device, which is default mode.
 	*/
-	void setJointForce(){this->mode_ = JOINT_SPACE;}
+	void setJointForceMode(){this->mode_ = JOINT_SPACE;}
 
 	/**
 	* @brief Set function
 	* Set to Cartesian space haptic force on the Geomagic device
 	*/
-	void setCartForce(){this->mode_ = CARTESIAN_SPACE;}
+	void setCartForceMode(){this->mode_ = CARTESIAN_SPACE;}
 
 	/**
 	* @brief Set function

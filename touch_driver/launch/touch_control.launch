@@ -7,9 +7,10 @@
   <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
 
   <arg name="controller_config_file" default="$(find touch_driver)/config/touch_controllers.yaml" doc="Config file used for defining the ROS-Control controllers."/>
-  <arg name="controllers" default="joint_state_controller effort_controllers"/>
+  <arg name="controllers" default="joint_state_controller joint_effort_controllers"/>
   <arg name="stopped_controllers" default=""/>
   <arg name="tf_prefix" default="Touch" doc="tf_prefix used for the Touch."/>
+  <arg name="publish_rate" default="500" doc="tf_prefix used for the Touch."/>
   
   <!-- Load touch URDF -->
   <include file="$(find touch_description)/launch/load_touch.launch" >
@@ -21,6 +22,7 @@
   <!-- Load hardware interface -->
   <node name="touch_hardware_interface" pkg="touch_driver" type="touch_driver_node" output="screen" launch-prefix="$(arg launch_prefix)" required="true">
     <param name="tf_prefix" value="$(arg tf_prefix)" />
+    <param name="publish_rate" value="$(arg publish_rate)" />
     <remap from="joint_states" to="$(arg tf_prefix)/joint_states" />
   </node>
 
