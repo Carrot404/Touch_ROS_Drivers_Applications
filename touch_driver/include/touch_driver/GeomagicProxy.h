@@ -43,7 +43,7 @@ namespace Eigen {
 
 enum BUTTONS { GEOMAGIC_LOW_BUTTON, GEOMAGIC_HIGH_BUTTON, GEOMAGIC_BUTTONS_NUM };
 enum PRESSED_BUTTONS { NO_PRESSED, PRESSED_LOW, PRESSED_HIGH, PRESSED_BOTH };
-enum WORKSPACE {JOINT_SPACE, CARTESIAN_SPACE};
+enum WORKSPACE {JOINT_SPACE, CARTESIAN_SPACE, NO_SPACE};
 
 struct HDUtilityData {
 
@@ -192,6 +192,12 @@ public:
 	* Set to Cartesian space haptic force on the Geomagic device
 	*/
 	void setCartForceMode(){this->mode_ = CARTESIAN_SPACE;}
+
+	/**
+	* @brief Set function
+	* disable force feedback
+	*/
+	void setNoMode(){this->mode_ = NO_SPACE;}
 
 	/**
 	* @brief Set function

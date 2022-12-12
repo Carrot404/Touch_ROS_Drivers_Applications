@@ -89,6 +89,14 @@
     </visual>
   </link>
 
+  <joint name="eef_fixed" type="fixed" >
+    <parent link="lower_arm" />
+    <child link="end_effector" />
+    <origin xyz="0 0.1325 0.0" rpy="0 0 0" />
+  </joint>
+
+  <link name="end_effector" />
+
   <joint name="joint4_yaw" type="revolute" >
     <parent link="lower_arm" />
     <child link="wrist" />

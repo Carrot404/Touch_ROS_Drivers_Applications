@@ -8,4 +8,4 @@ moveit_setup_assistant_config:
   CONFIG:
     author_name: Songjie Xiao
     author_email: songjiexiao@zju.edu.cn
-    generated_timestamp: 1670849938
+    generated_timestamp: 1670854064

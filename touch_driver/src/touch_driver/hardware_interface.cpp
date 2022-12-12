@@ -136,6 +136,7 @@ void HardwareInterface::write(const ros::Time& time, const ros::Duration& period
     if (effort_controller_running_)
     {
       geo_proxy_->setJointForceMode();
+      // geo_proxy_->setNoMode();
       geo_proxy_->setForceCommand(joint_effort_command_);
     }
   }

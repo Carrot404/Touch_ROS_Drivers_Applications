@@ -12,9 +12,6 @@ hardware_interface:
     - joint1_waist
     - joint2_shoulder
     - joint3_elbow
-    - joint4_yaw
-    - joint5_pitch
-    - joint6_roll
   sim_control_mode: 1  # 0: position, 1: velocity
 # Publish all joint states
 # Creates the /joint_states topic necessary in ROS

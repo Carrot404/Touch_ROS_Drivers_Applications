@@ -16,7 +16,37 @@ joint_state_controller:
    publish_rate: *loop_hz
    joints: *robot_joints
 
-# pos_state_controller:
+effort_joint_traj_controller:
+   type: effort_controllers/JointTrajectoryController
+   joints:
+     - joint1_waist
+     - joint2_shoulder
+     - joint3_elbow
+   constraints:
+      goal_time: 0.6
+      stopped_velocity_tolerance: 0.05
+      joint1_waist: {trajectory: 0.1, goal: 0.1}
+      joint2_shoulder: {trajectory: 0.1, goal: 0.1}
+      joint3_elbow: {trajectory: 0.1, goal: 0.1}
+      # joint4_yaw: {trajectory: 0.1, goal: 0.1}
+      # joint5_pitch: {trajectory: 0.1, goal: 0.1}
+      # joint6_roll: {trajectory: 0.1, goal: 0.1}
+   gains:
+      #!!These values have not been optimized!!
+      joint1_waist:    {p: 1000.0,  i: 0.0, d: 10.0, i_clamp: 1}
+      joint2_shoulder: {p: 5000.0,  i: 0.0, d: 10.0, i_clamp: 1}
+      joint3_elbow:    {p: 3000.0,  i: 0.0, d: 10.0, i_clamp: 1}
+   # Use a feedforward term to reduce the size of PID gains
+   velocity_ff:
+      joint1_waist: 1.0
+      joint2_shoulder: 1.0
+      joint3_elbow: 1.0
+      # joint4_yaw: 1.0
+      # joint5_pitch: 1.0
+      # joint6_roll: 1.0
+   stop_trajectory_duration: 0.5
+   state_publish_rate: *loop_hz
+   action_monitor_rate: 20
 
 
 joint_effort_controllers:
@@ -27,13 +57,11 @@ joint_effort_controllers:
      - joint3_elbow
    #!!These values have not been optimized!!
    joint1_waist:
-      pid:  {p: 1000.0,  i: 0.05, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0}
+      pid:  {p: 1000.0,  i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0}
    joint2_shoulder:
-      pid:  {p: 1000.0,  i: 0.05, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0}
+      pid:  {p: 5000.0,  i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0}
    joint3_elbow:
-      pid:  {p: 1000.0,  i: 0.05, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0}
-
-# cart
+      pid:  {p: 3000.0,  i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0}
 
 # effort_controllers:
 #    type: effort_controllers/JointPositionController     
