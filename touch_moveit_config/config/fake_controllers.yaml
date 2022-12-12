@@ -1,0 +1,12 @@
+controller_list:
+  - name: fake_touch_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - joint1_waist
+      - joint2_shoulder
+      - joint3_elbow
+initial:  # Define initial robot poses.
+#  - group: touch
+#    pose: home
+
+  []

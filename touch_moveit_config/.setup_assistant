@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: touch_description
+    relative_path: urdf/touch.urdf
+    xacro_args: ""
+  SRDF:
+    relative_path: config/phantom_touch.srdf
+  CONFIG:
+    author_name: Songjie Xiao
+    author_email: songjiexiao@zju.edu.cn
+    generated_timestamp: 1670849938
