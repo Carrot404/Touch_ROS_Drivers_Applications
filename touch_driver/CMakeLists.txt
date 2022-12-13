@@ -15,6 +15,10 @@ find_package(catkin REQUIRED
     realtime_tools
     pluginlib
     touch_msgs
+    geometry_msgs
+    urdf
+    kdl_conversions
+    kdl_parser
 )
 
 ## System dependencies are found with CMake's conventions
@@ -118,6 +122,10 @@ catkin_package(
         realtime_tools
         pluginlib
         touch_msgs
+        geometry_msgs
+        urdf
+        kdl_conversions
+        kdl_parser
     DEPENDS
 )
 
@@ -136,6 +144,8 @@ include_directories(
 add_library(${PROJECT_NAME}
   src/${PROJECT_NAME}/hardware_interface.cpp
   src/${PROJECT_NAME}/GeomagicProxy.cpp
+  src/${PROJECT_NAME}/kinematic_chain_solver.cpp
+  
 )
 target_link_libraries(${PROJECT_NAME} HD HDU ${catkin_LIBRARIES})
 

@@ -14,7 +14,8 @@
 #include <tf2_msgs/TFMessage.h>
 #include <touch_msgs/TouchButtonEvent.h>
 
-#include "./GeomagicProxy.h"
+#include <touch_driver/GeomagicProxy.h>
+#include <touch_driver/kinematic_chain_solver.h>
 
 namespace touch_driver
 {
@@ -137,6 +138,7 @@ protected:
     std::shared_ptr<GeomagicProxy> geo_proxy_;
 
     hardware_interface::JointStateInterface jnt_state_interface_;
+    hardware_interface::JointStateInterface jnt_state_interface2_;
     hardware_interface::EffortJointInterface jnt_effort_interface_;
     // hardware_interface::JointStateInterface pos_state_interface_;
     
@@ -163,6 +165,8 @@ protected:
 
     std::string tf_prefix_;
     int publish_rate_;
+
+    std::unique_ptr<ForwardKinematicSolver> fksolver_;
 
 };
 

@@ -5,7 +5,7 @@
  */
 
 #include <pluginlib/class_list_macros.hpp>
-#include "../../include/touch_driver/hardware_interface.h"
+#include <touch_driver/hardware_interface.h>
 
 namespace touch_driver
 {
@@ -71,10 +71,14 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
     }
 
   }
+  fksolver_->init(&jnt_state_interface2_, root_nh);
+
 
   // Register interfaces
   registerInterface(&jnt_state_interface_);
   registerInterface(&jnt_effort_interface_);
+  registerInterface(&jnt_state_interface2_);
+
 
   controllers_initialized_ = true;
   effort_controller_running_ = true;
@@ -126,6 +130,8 @@ void HardwareInterface::read(const ros::Time& time, const ros::Duration& period)
     button_state_[4] = geo_state->action[0];
     button_state_[5] = geo_state->action[1];
     publishButton();
+
+    // fksolver_->publish();
   }
 }
 

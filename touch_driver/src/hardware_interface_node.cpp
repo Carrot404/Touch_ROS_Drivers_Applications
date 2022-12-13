@@ -9,6 +9,7 @@
 
 #include <csignal>
 #include <touch_driver/hardware_interface.h>
+// #include <touch_driver/kinematic_chain_solver.h>
 
 
 std::unique_ptr<touch_driver::HardwareInterface> g_hw_interface;

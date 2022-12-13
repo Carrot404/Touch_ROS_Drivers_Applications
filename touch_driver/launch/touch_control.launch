@@ -11,6 +11,10 @@
   <arg name="stopped_controllers" default=""/>
   <arg name="tf_prefix" default="Touch" doc="tf_prefix used for the Touch."/>
   <arg name="publish_rate" default="500" doc="tf_prefix used for the Touch."/>
+  <arg name="root_name" default="base" doc="tf_prefix used for the Touch."/>
+  <arg name="tip_name" default="end_effector" doc="tf_prefix used for the Touch."/>
+
+
   
   <!-- Load touch URDF -->
   <include file="$(find touch_description)/launch/load_touch.launch" >
@@ -23,8 +27,8 @@
     <!-- <remap from="joint_states" to="Touch/joint_states" /> -->
   </node>
 
-  <include file="$(find touch_moveit_config)/launch/move_group.launch" >
-	</include>
+  <!-- <include file="$(find touch_moveit_config)/launch/move_group.launch" >
+	</include> -->
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find touch_teleoperation)/cfg/touch_state.rviz" />
 
@@ -32,6 +36,8 @@
   <node name="touch_hardware_interface" pkg="touch_driver" type="touch_driver_node" output="screen" launch-prefix="$(arg launch_prefix)" required="true">
     <param name="tf_prefix" value="$(arg tf_prefix)" />
     <param name="publish_rate" value="$(arg publish_rate)" />
+    <param name="root_name" value="$(arg root_name)" />
+    <param name="tip_name" value="$(arg tip_name)" />
     <!-- <remap from="joint_states" to="$(arg tf_prefix)/joint_states" /> -->
   </node>
 

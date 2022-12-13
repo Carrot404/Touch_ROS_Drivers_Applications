@@ -59,9 +59,17 @@
   <build_depend>realtime_tools</build_depend>
   <exec_depend>realtime_tools</exec_depend>
   <build_depend>pluginlib</build_depend>
-  <exec_depend>pluginlib</exec_depend> 
+  <exec_depend>pluginlib</exec_depend>
   <build_depend>touch_msgs</build_depend>
-  <exec_depend>touch_msgs</exec_depend> 
+  <exec_depend>touch_msgs</exec_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <build_depend>urdf</build_depend>
+  <exec_depend>urdf</exec_depend>
+  <build_depend>kdl_conversions</build_depend>
+  <exec_depend>kdl_conversions</exec_depend>
+  <build_depend>kdl_parser</build_depend>
+  <exec_depend>kdl_parser</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

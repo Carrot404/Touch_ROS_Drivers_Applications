@@ -1,0 +1,17 @@
+<launch>
+
+  <arg name="base_frame" default="base"/>
+  <arg name="target_frame" default="end_effector"/>
+  <param name="urdf_param" value="/robot_description"/>
+ 
+  <!-- <include file="$(find touch_description)/launch/load_touch.launch" >
+  </include> -->
+
+
+  <node name="touch_active_control" pkg="touch_teleoperation" type="touch_active_control" output="screen"> 
+    <param name="base_frame" value="$(arg base_frame)"/>
+    <param name="target_frame" value="$(arg target_frame)"/>
+    <param name="urdf_param" value="$(arg urdf_param)"/>
+  </node>
+
+</launch>
