@@ -41,12 +41,12 @@ struct jointstate
 class KinematicChainBase
 {
 public:
-    KinematicChainBase();
+    KinematicChainBase() {}
     ~KinematicChainBase() = default;
 
     bool initbase(ros::NodeHandle &nh);
 
-    std::shared_ptr<jointstate> getStateData(){return joint_state_;}
+    // std::shared_ptr<jointstate> getStateData(){return joint_state_;}
 
 protected:
     ros::NodeHandle nh_;
@@ -56,20 +56,19 @@ protected:
     KDL::JntArrayVel joint_msr_;
     std::vector<std::string> joint_name_;
 
-    std::shared_ptr<jointstate> joint_state_;
 
     // std::vector<typename JointInterface::ResourceHandleType> joint_handles_;
 };
 
-KinematicChainBase::KinematicChainBase()
-{
-    this->joint_state_ = std::make_shared<jointstate>();
+// KinematicChainBase::KinematicChainBase()
+// {
+//     this->joint_state_ = std::make_shared<jointstate>();
 
-    this->joint_state_->joint_names.resize(6);
-    this->joint_state_->joint_positions.resize(6);
-    this->joint_state_->joint_velocities.resize(6);
-    this->joint_state_->joint_efforts.resize(6);
-}
+//     this->joint_state_->joint_names.resize(6);
+//     this->joint_state_->joint_positions.resize(6);
+//     this->joint_state_->joint_velocities.resize(6);
+//     this->joint_state_->joint_efforts.resize(6);
+// }
 
 bool KinematicChainBase::initbase(ros::NodeHandle &nh)
 {

@@ -7,41 +7,61 @@
 #ifndef KINEMATIC_CHAIN_SOLVER_H
 #define KINEMATIC_CHAIN_SOLVER_H
 
-#include <hardware_interface/joint_state_interface.h>
+#include <ros/ros.h>
+#include <vector>
+#include <urdf/model.h>
+
+// #include <hardware_interface/joint_state_interface.h>
+
+#include <kdl/kdl.hpp>
+#include <kdl_parser/kdl_parser.hpp>
 #include <kdl/chainfksolvervel_recursive.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <geometry_msgs/Pose.h>
 #include <kdl_conversions/kdl_msg.h>
 // #include "kinematic_chain_base.h"
-#include <touch_driver/kinematic_chain_base.h>
+// #include <touch_driver/kinematic_chain_base.h>
 
 namespace touch_driver
 {
+struct limits
+{
+    KDL::JntArray min;
+    KDL::JntArray max;
+    KDL::JntArray center;
+};
 
-class ForwardKinematicSolver : public KinematicChainBase
+struct jointstate
+{
+    std::vector<std::string> joint_names;
+    std::vector<double> joint_positions;
+    std::vector<double> joint_velocities;
+    std::vector<double> joint_efforts;
+};
+
+class ForwardKinematicSolver
 {
 public:
-    ForwardKinematicSolver() {}
+    ForwardKinematicSolver();
     ~ForwardKinematicSolver() {}
 
-    /** \brief The init function is called to initialize the controller from a
-     * non-realtime thread with a pointer to the hardware interface, itself,
-     * instead of a pointer to a RobotHW.
-     *
-     * \param robot The specific hardware interface used by this controller.
-     *
-     * \param n A NodeHandle in the namespace from which the controller
-     * should read its configuration, and where it should set up its ROS
-     * interface.
-     *
-     * \returns True if initialization was successful and the controller
-     * is ready to be started.
-     */
+    bool initbase(ros::NodeHandle &nh);
     bool init(ros::NodeHandle &nh);
+
+    std::shared_ptr<jointstate> getStateData(){return joint_state_;}
 
     void publish();
 
 protected:
+
+    ros::NodeHandle nh_;
+    KDL::Chain kdl_chain_;
+    limits joint_limits_;
+    KDL::JntArrayVel joint_msr_;
+    std::vector<std::string> joint_name_;
+
+    std::shared_ptr<jointstate> joint_state_;
+
 
     KDL::FrameVel x_dot_;
     KDL::Frame x_;
