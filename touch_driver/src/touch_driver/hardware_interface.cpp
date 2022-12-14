@@ -11,11 +11,11 @@ namespace touch_driver
 {
 
 HardwareInterface::HardwareInterface()
-    : joint_names_(6)
-    , joint_positions_(6)
-    , joint_velocities_(6)
-    , joint_efforts_(6)
-    , joint_effort_command_(3)
+    // : joint_names_(6)
+    // , joint_positions_(6)
+    // , joint_velocities_(6)
+    // , joint_efforts_(6)
+    : joint_effort_command_(3)
     , tcp_pose_(7)
     , button_state_(6)
     , effort_controller_running_(false)
@@ -23,6 +23,11 @@ HardwareInterface::HardwareInterface()
     , controller_reset_necessary_(false)
     , controllers_initialized_(false)
 {
+  // joint_state_ = std::make_shared<jointstate>();
+  // joint_state_->joint_names.resize(6);
+  // joint_state_->joint_positions.resize(6);
+  // joint_state_->joint_velocities.resize(6);
+  // joint_state_->joint_efforts.resize(6);
 }
 
 HardwareInterface::~HardwareInterface()
@@ -48,7 +53,8 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
   robot_hw_nh.param<std::string>("tf_prefix", tf_prefix_, "Touch");
     
   // Names of the joints. Usually, this is given in the controller config file.
-  if (!robot_hw_nh.getParam("joints", joint_names_))
+  // if (!robot_hw_nh.getParam("joints", joint_names_))
+  if (!robot_hw_nh.getParam("joints", joint_state_->joint_names))
   {
     ROS_ERROR_STREAM("Cannot find required parameter " << robot_hw_nh.resolveName("joints")
                                                       << " on the parameter server.");
@@ -56,29 +62,32 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
                             "'controller_joint_names' on the parameter server.");
   }
 
+  fksolver_ = std::make_shared<ForwardKinematicSolver>();
+  fksolver_->init(root_nh); 
+  joint_state_ = fksolver_->getStateData();
+
   // Create ros_control interfaces
-  for (std::size_t i = 0; i < joint_names_.size(); i++)
+  for (std::size_t i = 0; i < joint_state_->joint_names.size(); i++)
   {
-    ROS_DEBUG_STREAM("Registering handles for joint " << joint_names_[i]);
+    ROS_DEBUG_STREAM("Registering handles for joint " << joint_state_->joint_names[i]);
     // Create joint state interface for all joints
-    jnt_state_interface_.registerHandle(hardware_interface::JointStateHandle(joint_names_[i], &joint_positions_[i],
-                                                                             &joint_velocities_[i], &joint_efforts_[i]));
+    jnt_state_interface_.registerHandle(hardware_interface::JointStateHandle(joint_state_->joint_names[i], &joint_state_->joint_positions[i],
+                                                                             &joint_state_->joint_velocities[i], &joint_state_->joint_efforts[i]));
 
     // Create joint effort control interface
     if(i<3){
       jnt_effort_interface_.registerHandle(
-          hardware_interface::JointHandle(jnt_state_interface_.getHandle(joint_names_[i]), &joint_effort_command_[i]));
+          hardware_interface::JointHandle(jnt_state_interface_.getHandle(joint_state_->joint_names[i]), &joint_effort_command_[i]));
     }
 
   }
-  fksolver_->init(&jnt_state_interface2_, root_nh);
+
+
 
 
   // Register interfaces
   registerInterface(&jnt_state_interface_);
   registerInterface(&jnt_effort_interface_);
-  registerInterface(&jnt_state_interface2_);
-
 
   controllers_initialized_ = true;
   effort_controller_running_ = true;
@@ -105,12 +114,12 @@ void HardwareInterface::read(const ros::Time& time, const ros::Duration& period)
   if(geo_state)
   {
     // publish to Topic /joint_states
-    for (std::size_t i = 0; i < joint_names_.size(); i++)
+    for (std::size_t i = 0; i < joint_state_->joint_names.size(); i++)
     {
-      joint_positions_[i] = geo_state->jointPosition[i];
-      joint_velocities_[i] = geo_state->jointVelocity[i];
+      joint_state_->joint_positions[i] = geo_state->jointPosition[i];
+      joint_state_->joint_velocities[i] = geo_state->jointVelocity[i];
       if (i<3){
-        joint_efforts_[i] = geo_state->jointEffort[i];
+        joint_state_->joint_efforts[i] = geo_state->jointEffort[i];
       }
     }
 
@@ -131,7 +140,7 @@ void HardwareInterface::read(const ros::Time& time, const ros::Duration& period)
     button_state_[5] = geo_state->action[1];
     publishButton();
 
-    // fksolver_->publish();
+    fksolver_->publish();
   }
 }
 
@@ -275,7 +284,7 @@ void HardwareInterface::publishButton()
 
 bool HardwareInterface::checkControllerClaims(const std::set<std::string>& claimed_resources)
 {
-  for (const std::string& it : joint_names_)
+  for (const std::string& it : joint_state_->joint_names)
   {
     for (const std::string& jt : claimed_resources)
     {

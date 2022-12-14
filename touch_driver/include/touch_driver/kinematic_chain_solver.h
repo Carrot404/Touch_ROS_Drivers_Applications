@@ -18,9 +18,7 @@
 namespace touch_driver
 {
 
-class ForwardKinematicSolver:
-    public KinematicChainBase<
-        hardware_interface::JointStateInterface>
+class ForwardKinematicSolver : public KinematicChainBase
 {
 public:
     ForwardKinematicSolver() {}
@@ -39,7 +37,7 @@ public:
      * \returns True if initialization was successful and the controller
      * is ready to be started.
      */
-    bool init(hardware_interface::JointStateInterface *robot, ros::NodeHandle &nh);
+    bool init(ros::NodeHandle &nh);
 
     void publish();
 

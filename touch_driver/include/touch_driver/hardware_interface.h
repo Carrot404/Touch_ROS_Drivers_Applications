@@ -136,16 +136,16 @@ protected:
 
 
     std::shared_ptr<GeomagicProxy> geo_proxy_;
+    std::shared_ptr<ForwardKinematicSolver> fksolver_;
 
     hardware_interface::JointStateInterface jnt_state_interface_;
-    hardware_interface::JointStateInterface jnt_state_interface2_;
     hardware_interface::EffortJointInterface jnt_effort_interface_;
-    // hardware_interface::JointStateInterface pos_state_interface_;
     
-    std::vector<std::string> joint_names_;
-    std::vector<double> joint_positions_;
-    std::vector<double> joint_velocities_;
-    std::vector<double> joint_efforts_;
+    // std::vector<std::string> joint_names_;
+    // std::vector<double> joint_positions_;
+    // std::vector<double> joint_velocities_;
+    // std::vector<double> joint_efforts_;
+    std::shared_ptr<jointstate> joint_state_;
     std::vector<double> joint_effort_command_;
     std::vector<double> tcp_pose_;                     //!< Pose vetor in order like this [pos.x, pos.y, pos.z, ori.x, ori.y, ori.z, ori.w]
     std::vector<bool> button_state_;
@@ -165,8 +165,6 @@ protected:
 
     std::string tf_prefix_;
     int publish_rate_;
-
-    std::unique_ptr<ForwardKinematicSolver> fksolver_;
 
 };
 

@@ -8,6 +8,7 @@
 #define KINEMATIC_CHAIN_BASE_H
 
 #include <ros/ros.h>
+#include <vector>
 #include <urdf/model.h>
 
 #include <kdl/kdl.hpp>
@@ -20,8 +21,6 @@
 
 // #include <trac_ik/trac_ik.hpp>
 
-#include <vector>
-
 namespace touch_driver
 {
 struct limits
@@ -31,31 +30,53 @@ struct limits
     KDL::JntArray center;
 };
 
-template<typename JointInterface>
+struct jointstate
+{
+    std::vector<std::string> joint_names;
+    std::vector<double> joint_positions;
+    std::vector<double> joint_velocities;
+    std::vector<double> joint_efforts;
+};
+
 class KinematicChainBase
 {
 public:
-    KinematicChainBase() {}
+    KinematicChainBase();
     ~KinematicChainBase() = default;
 
-    bool init(JointInterface *robot, ros::NodeHandle &nh);
+    bool initbase(ros::NodeHandle &nh);
 
+    std::shared_ptr<jointstate> getStateData(){return joint_state_;}
 
 protected:
     ros::NodeHandle nh_;
     // ros::NodeHandle priv_nh_;
     KDL::Chain kdl_chain_;
-    KDL::JntArrayVel joint_msr_;
     limits joint_limits_;
+    KDL::JntArrayVel joint_msr_;
+    std::vector<std::string> joint_name_;
 
-    std::vector<typename JointInterface::ResourceHandleType> joint_handles_;
+    std::shared_ptr<jointstate> joint_state_;
+
+    // std::vector<typename JointInterface::ResourceHandleType> joint_handles_;
 };
 
-template <typename JointInterface>
-bool KinematicChainBase<JointInterface>::init(JointInterface *robot, ros::NodeHandle &nh)
+KinematicChainBase::KinematicChainBase()
+{
+    this->joint_state_ = std::make_shared<jointstate>();
+
+    this->joint_state_->joint_names.resize(6);
+    this->joint_state_->joint_positions.resize(6);
+    this->joint_state_->joint_velocities.resize(6);
+    this->joint_state_->joint_efforts.resize(6);
+}
+
+bool KinematicChainBase::initbase(ros::NodeHandle &nh)
 {
     nh_ = nh;
     // priv_nh_ = priv_nh;
+    // joint_state_ = std::make_shared<jointstate>(joint_state);
+    // std::shared_ptr<jointstate> joint_state_(joint_state);
 
     // get URDF and name of root and tip from the parameter server
     std::string robot_description, root_name, tip_name;
@@ -179,6 +200,24 @@ bool KinematicChainBase<JointInterface>::init(JointInterface *robot, ros::NodeHa
         link = model.getLink(link->getParent()->name);
     }
 
+    ROS_INFO("Getting joint in kdl chain");
+    int count = 0;
+    for(std::vector<KDL::Segment>::const_iterator it =
+        kdl_chain_.segments.begin(); it != kdl_chain_.segments.end(); ++it)
+    {
+        ROS_INFO("%s type: %s", it->getJoint().getName().c_str(),
+                it->getJoint().getTypeName().c_str() );
+        if(it->getJoint().getTypeName() != "None" && count < 6) {
+            // joint_handles_.push_back(robot->getHandle(it->getJoint().getName()));
+            joint_name_.push_back(it->getJoint().getName());
+        }
+        count++;
+    }
+    joint_msr_.resize(joint_name_.size());
+    ROS_INFO("Number of joints = %lu", joint_name_.size() );
+    ROS_INFO_STREAM("kdl_chain.getNrOfJoints: " << kdl_chain_.getNrOfJoints());
+
+
     // ROS_INFO("Getting joint handles");
     // // Get joint handles for all of the joints in the chain
     // int count=0;
@@ -189,7 +228,7 @@ bool KinematicChainBase<JointInterface>::init(JointInterface *robot, ros::NodeHa
     //     ROS_INFO("%s type: %s", it->getJoint().getName().c_str(),
     //             it->getJoint().getTypeName().c_str() );
     //     if(it->getJoint().getTypeName() != "None" && count < 7) {
-    //     joint_handles_.push_back(robot->getHandle(it->getJoint().getName()));
+    //         // joint_handles_.push_back(robot->getHandle(it->getJoint().getName()));
     //     }
     //     count++;
     // }

@@ -10,11 +10,14 @@
 namespace touch_driver
 {
 
-bool ForwardKinematicSolver::init(
-    hardware_interface::JointStateInterface *robot, ros::NodeHandle &nh)
+// ForwardKinematicSolver::ForwardKinematicSolver()
+// {
+    
+// }
+
+bool ForwardKinematicSolver::init(ros::NodeHandle &nh)
 {
-    KinematicChainBase<hardware_interface::JointStateInterface>::
-        init(robot, nh);
+    KinematicChainBase::initbase(nh);
     
     fk_vel_solver_.reset(new KDL::ChainFkSolverVel_recursive(kdl_chain_));
     fk_pos_solver_.reset(new KDL::ChainFkSolverPos_recursive(kdl_chain_));
@@ -40,10 +43,10 @@ void ForwardKinematicSolver::publish()
     geometry_msgs::Pose msg;
     // while (ros::ok()){
         // Get joint positions
-        for(std::size_t i=0; i < joint_handles_.size(); i++)
+        for(std::size_t i=0; i < joint_name_.size(); i++)
         {
-            joint_msr_.q(i)         = joint_handles_[i].getPosition();
-            joint_msr_.qdot(i)      = joint_handles_[i].getVelocity();
+            joint_msr_.q(i)         = joint_state_->joint_positions[i];
+            joint_msr_.qdot(i)      = joint_state_->joint_positions[i];
         }
 
         // Compute forward kinematics
