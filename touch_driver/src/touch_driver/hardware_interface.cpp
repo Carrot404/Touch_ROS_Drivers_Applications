@@ -23,11 +23,11 @@ HardwareInterface::HardwareInterface()
     , controller_reset_necessary_(false)
     , controllers_initialized_(false)
 {
-  // joint_state_ = std::make_shared<jointstate>();
-  // joint_state_->joint_names.resize(6);
-  // joint_state_->joint_positions.resize(6);
-  // joint_state_->joint_velocities.resize(6);
-  // joint_state_->joint_efforts.resize(6);
+  joint_state_ = std::make_shared<jointstate>();
+  joint_state_->joint_names.resize(6);
+  joint_state_->joint_positions.resize(6);
+  joint_state_->joint_velocities.resize(6);
+  joint_state_->joint_efforts.resize(6);
 }
 
 HardwareInterface::~HardwareInterface()
@@ -64,7 +64,7 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
 
   fksolver_ = std::make_shared<ForwardKinematicSolver>();
   fksolver_->init(root_nh); 
-  joint_state_ = fksolver_->getStateData();
+  // joint_state_ = fksolver_->getStateData();
 
   // Create ros_control interfaces
   for (std::size_t i = 0; i < joint_state_->joint_names.size(); i++)

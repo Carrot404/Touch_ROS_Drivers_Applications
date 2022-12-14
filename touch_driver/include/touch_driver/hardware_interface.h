@@ -15,7 +15,8 @@
 #include <touch_msgs/TouchButtonEvent.h>
 
 #include <touch_driver/GeomagicProxy.h>
-#include <touch_driver/kinematic_chain_solver.h>
+// #include <touch_driver/kinematic_chain_solver.h>
+#include "kinematic_chain_solver.h"
 
 namespace touch_driver
 {

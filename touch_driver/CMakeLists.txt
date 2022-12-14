@@ -144,14 +144,17 @@ include_directories(
 add_library(${PROJECT_NAME}
   src/${PROJECT_NAME}/hardware_interface.cpp
   src/${PROJECT_NAME}/GeomagicProxy.cpp
+  src/${PROJECT_NAME}/kinematic_chain_base.cpp
   src/${PROJECT_NAME}/kinematic_chain_solver.cpp
-  
 )
 target_link_libraries(${PROJECT_NAME} HD HDU ${catkin_LIBRARIES})
 
 ## Declare a C++ executable
 add_executable(touch_driver_node 
     src/hardware_interface_node.cpp
+    # src/${PROJECT_NAME}/kinematic_chain_base.cpp
+    # src/${PROJECT_NAME}/kinematic_chain_solver.cpp
+
 )
 target_link_libraries(touch_driver_node ${PROJECT_NAME} ${catkin_LIBRARIES})
 

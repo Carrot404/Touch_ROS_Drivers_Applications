@@ -7,45 +7,24 @@
 #ifndef KINEMATIC_CHAIN_SOLVER_H
 #define KINEMATIC_CHAIN_SOLVER_H
 
-#include <ros/ros.h>
-#include <vector>
-#include <urdf/model.h>
-
-// #include <hardware_interface/joint_state_interface.h>
-
-#include <kdl/kdl.hpp>
-#include <kdl_parser/kdl_parser.hpp>
 #include <kdl/chainfksolvervel_recursive.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <geometry_msgs/Pose.h>
 #include <kdl_conversions/kdl_msg.h>
-// #include "kinematic_chain_base.h"
-// #include <touch_driver/kinematic_chain_base.h>
+
+#include <touch_driver/kinematic_chain_base.h>
+
+// #include <trac_ik/trac_ik.hpp>
 
 namespace touch_driver
 {
-struct limits
-{
-    KDL::JntArray min;
-    KDL::JntArray max;
-    KDL::JntArray center;
-};
 
-struct jointstate
-{
-    std::vector<std::string> joint_names;
-    std::vector<double> joint_positions;
-    std::vector<double> joint_velocities;
-    std::vector<double> joint_efforts;
-};
-
-class ForwardKinematicSolver
+class ForwardKinematicSolver : public KinematicChainBase
 {
 public:
     ForwardKinematicSolver();
     ~ForwardKinematicSolver() {}
 
-    bool initbase(ros::NodeHandle &nh);
     bool init(ros::NodeHandle &nh);
 
     std::shared_ptr<jointstate> getStateData(){return joint_state_;}
@@ -54,14 +33,7 @@ public:
 
 protected:
 
-    ros::NodeHandle nh_;
-    KDL::Chain kdl_chain_;
-    limits joint_limits_;
-    KDL::JntArrayVel joint_msr_;
-    std::vector<std::string> joint_name_;
-
     std::shared_ptr<jointstate> joint_state_;
-
 
     KDL::FrameVel x_dot_;
     KDL::Frame x_;
