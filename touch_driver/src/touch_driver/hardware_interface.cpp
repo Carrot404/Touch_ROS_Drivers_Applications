@@ -34,6 +34,7 @@ HardwareInterface::~HardwareInterface()
 {
   geo_proxy_->stop();
   geo_proxy_.reset();
+  fksolver_.reset();
 }
 
 bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh)
@@ -62,10 +63,6 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
                             "'controller_joint_names' on the parameter server.");
   }
 
-  fksolver_ = std::make_shared<ForwardKinematicSolver>();
-  fksolver_->init(root_nh); 
-  // joint_state_ = fksolver_->getStateData();
-
   // Create ros_control interfaces
   for (std::size_t i = 0; i < joint_state_->joint_names.size(); i++)
   {
@@ -81,9 +78,6 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
     }
 
   }
-
-
-
 
   // Register interfaces
   registerInterface(&jnt_state_interface_);
@@ -104,6 +98,12 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
   // Initialize Geomagic Proxy
   ROS_INFO_STREAM("Initializing Geomagic Proxy");
   geo_proxy_ = std::make_shared<GeomagicProxy>();
+
+  fksolver_ = std::make_shared<ForwardKinematicSolver>();
+  if(!fksolver_->init(robot_hw_nh, joint_state_.get())){
+    ROS_ERROR("Failed to init ForwardKinematicSolver");
+    return false;
+  } 
 
   return true;
 }
@@ -140,7 +140,7 @@ void HardwareInterface::read(const ros::Time& time, const ros::Duration& period)
     button_state_[5] = geo_state->action[1];
     publishButton();
 
-    fksolver_->publish();
+    fksolver_->publish(time);
   }
 }
 

@@ -51,6 +51,8 @@ protected:
     KDL::JntArrayVel joint_msr_;
     std::vector<std::string> joint_name_;
 
+    std::string root_name_, tip_name_;
+
     // std::vector<typename JointInterface::ResourceHandleType> joint_handles_;
 };
 

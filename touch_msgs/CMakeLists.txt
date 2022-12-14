@@ -7,6 +7,7 @@ add_message_files(FILES
 		TouchFeedback.msg 
 		TouchButtonEvent.msg 
 		TouchState.msg
+		TouchPoseTwist.msg
 		)
 
 generate_messages(DEPENDENCIES geometry_msgs sensor_msgs std_msgs)

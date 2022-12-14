@@ -15,7 +15,7 @@ bool KinematicChainBase::init(ros::NodeHandle &nh)
     // priv_nh_ = priv_nh;
 
     // get URDF and name of root and tip from the parameter server
-    std::string robot_description, root_name, tip_name;
+    std::string robot_description;
 
     std::string name_space = nh_.getNamespace();
     std::cout<< "--------------------> name_space:  " << name_space << std::endl;
@@ -28,14 +28,14 @@ bool KinematicChainBase::init(ros::NodeHandle &nh)
         return false;
     }
 
-    if (!nh_.getParam( name_space + "/root_name", root_name))
+    if (!nh_.getParam( name_space + "/root_name", root_name_))
     {
         ROS_ERROR_STREAM("KinematicChain: No root name found on "
                         "parameter server ("<<nh_.getNamespace()<<"/root_name)");
         return false;
     }
 
-    if (!nh_.getParam(name_space + "/tip_name", tip_name))
+    if (!nh_.getParam(name_space + "/tip_name", tip_name_))
     {
         ROS_ERROR_STREAM("KinematicChainControllerBase: No tip name found on "
                         "parameter server ("<<nh_.getNamespace()<<"/tip_name)");
@@ -82,10 +82,10 @@ bool KinematicChainBase::init(ros::NodeHandle &nh)
     }
 
     // Populate the KDL chain
-    if(!kdl_tree.getChain(root_name, tip_name, kdl_chain_))
+    if(!kdl_tree.getChain(root_name_, tip_name_, kdl_chain_))
     {
         ROS_ERROR_STREAM("Failed to get KDL chain from tree: ");
-        ROS_ERROR_STREAM("  "<<root_name<<" --> "<<tip_name);
+        ROS_ERROR_STREAM("  "<<root_name_<<" --> "<<tip_name_);
         ROS_ERROR_STREAM("  Tree has "<<kdl_tree.getNrOfJoints()<<" joints");
         ROS_ERROR_STREAM("  Tree has "<<kdl_tree.getNrOfSegments()<<" segments");
         ROS_ERROR_STREAM("  The segments are:");
@@ -99,8 +99,8 @@ bool KinematicChainBase::init(ros::NodeHandle &nh)
         return false;
     }
 
-    ROS_INFO("tip_name:  %s",tip_name.c_str());
-    ROS_INFO("root_name: %s",root_name.c_str());
+    ROS_INFO("tip_name:  %s",tip_name_.c_str());
+    ROS_INFO("root_name: %s",root_name_.c_str());
     ROS_INFO("Number of segments: %d", kdl_chain_.getNrOfSegments());
     ROS_INFO("Number of joints in chain: %d", kdl_chain_.getNrOfJoints());
     for(std::size_t i = 0; i < kdl_chain_.getNrOfSegments(); i++){
@@ -108,29 +108,30 @@ bool KinematicChainBase::init(ros::NodeHandle &nh)
     }
 
     // Parsing joint limits from urdf model along kdl chain
-    std::shared_ptr<const urdf::Link> link = model.getLink(tip_name);
+    std::shared_ptr<const urdf::Link> link = model.getLink(tip_name_);
     std::shared_ptr<const urdf::Joint> joint;
     joint_limits_.min.resize(kdl_chain_.getNrOfJoints());
     joint_limits_.max.resize(kdl_chain_.getNrOfJoints());
     joint_limits_.center.resize(kdl_chain_.getNrOfJoints());
 
     int index;
-    for (std::size_t i = 0; i < kdl_chain_.getNrOfJoints() && link; i++)
+    for (int i = 0; i < kdl_chain_.getNrOfJoints() && link; i++)
     {
         joint = model.getJoint(link->parent_joint->name);
         ROS_INFO("Getting limits for joint: %s", joint->name.c_str());
         index = kdl_chain_.getNrOfJoints() - i - 1;
 
         if(joint->limits){
-        joint_limits_.min(index) = joint->limits->lower;
-        joint_limits_.max(index) = joint->limits->upper;
-        joint_limits_.center(index) = (joint_limits_.min(index) +
-                                        joint_limits_.max(index))/2;
+            joint_limits_.min(index) = joint->limits->lower;
+            joint_limits_.max(index) = joint->limits->upper;
+            joint_limits_.center(index) = (joint_limits_.min(index) +
+                                            joint_limits_.max(index))/2;
         }else{
-        joint_limits_.min(index) = 0;
-        joint_limits_.max(index) = 0;
-        joint_limits_.center(index) = 0;
-        ROS_INFO("joint->limits is NULL %s",joint->name.c_str());
+            i--;
+            joint_limits_.min(index) = 0;
+            joint_limits_.max(index) = 0;
+            joint_limits_.center(index) = 0;
+            ROS_INFO("joint->limits is NULL %s",joint->name.c_str());
         }
 
         link = model.getLink(link->getParent()->name);
