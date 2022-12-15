@@ -6,16 +6,13 @@
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
   <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
 
+  <arg name="tf_prefix" default="touch" doc="tf_prefix used for the Touch."/>
+  <arg name="root_name" default="base" doc="root name for forward and inverse kinematic solver."/>
+  <arg name="tip_name" default="end_effector" doc="tip name for forward and inverse kinematic solver."/>
   <arg name="controller_config_file" default="$(find touch_driver)/config/touch_controllers.yaml" doc="Config file used for defining the ROS-Control controllers."/>
   <arg name="controllers" default="joint_state_controller effort_joint_traj_controller"/>
-  <arg name="stopped_controllers" default=""/>
-  <arg name="tf_prefix" default="Touch" doc="tf_prefix used for the Touch."/>
-  <arg name="publish_rate" default="500" doc="tf_prefix used for the Touch."/>
-  <arg name="root_name" default="base" doc="tf_prefix used for the Touch."/>
-  <arg name="tip_name" default="end_effector" doc="tf_prefix used for the Touch."/>
+  <arg name="stopped_controllers" default="joint_effort_controllers"/>
 
-
-  
   <!-- Load touch URDF -->
   <include file="$(find touch_description)/launch/load_touch.launch" >
 	</include>
@@ -23,19 +20,18 @@
   <!-- Load controller settings -->
   <rosparam file="$(arg controller_config_file)" command="load"/>
 
+  <!-- robot_state_publisher node subscribe /joint_states and publish it to /tf -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" >
-    <!-- <remap from="joint_states" to="Touch/joint_states" /> -->
+    <!-- <remap from="joint_states" to="touch_hardware_interface/joint_states" /> -->
   </node>
 
+  <!-- touch_moveit_config package failed to plan trajectory for touch -->
   <!-- <include file="$(find touch_moveit_config)/launch/move_group.launch" >
 	</include> -->
-
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find touch_teleoperation)/cfg/touch_state.rviz" />
 
   <!-- Load hardware interface -->
   <node name="touch_hardware_interface" pkg="touch_driver" type="touch_driver_node" output="screen" launch-prefix="$(arg launch_prefix)" required="true">
     <param name="tf_prefix" value="$(arg tf_prefix)" />
-    <param name="publish_rate" value="$(arg publish_rate)" />
     <param name="root_name" value="$(arg root_name)" />
     <param name="tip_name" value="$(arg tip_name)" />
     <!-- <remap from="joint_states" to="$(arg tf_prefix)/joint_states" /> -->
@@ -48,6 +44,9 @@
 
   <!-- load other controller -->
   <node name="ros_control_stopped_spawner" pkg="controller_manager" type="spawner" respawn="false"
-    output="screen" args="stopped $(arg stopped_controllers)" unless="$(eval arg('stopped_controllers') == '')"/>
+    output="screen" args="--stopped $(arg stopped_controllers)" unless="$(eval arg('stopped_controllers') == '')"/>
+
+  <!-- launch rviz -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find touch_teleoperation)/cfg/touch_state.rviz" />
 
 </launch>

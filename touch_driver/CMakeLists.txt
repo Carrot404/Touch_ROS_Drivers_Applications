@@ -16,9 +16,11 @@ find_package(catkin REQUIRED
     pluginlib
     touch_msgs
     geometry_msgs
+    trajectory_msgs
     urdf
     kdl_conversions
     kdl_parser
+    trac_ik_lib
 )
 
 ## System dependencies are found with CMake's conventions
@@ -123,6 +125,7 @@ catkin_package(
         pluginlib
         touch_msgs
         geometry_msgs
+        trajectory_msgs
         urdf
         kdl_conversions
         kdl_parser
@@ -180,6 +183,22 @@ target_link_libraries(touch_driver_node ${PROJECT_NAME} ${catkin_LIBRARIES})
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
+
+######################TRAC-IK##########################
+# find_package(catkin REQUIRED COMPONENTS trac_ik_lib)
+# find_package(PkgConfig REQUIRED)
+# pkg_check_modules(pkg_nlopt REQUIRED nlopt)
+# find_package(Boost REQUIRED COMPONENTS date_time)
+# find_package(orocos_kdl REQUIRED)
+# catkin_package(
+#   CATKIN_DEPENDS
+#     trac_ik_lib
+#   DEPENDS
+#     Boost
+#     orocos_kdl
+#     pkg_nlopt
+# )
+#######################################################
 
 #############
 ## Install ##

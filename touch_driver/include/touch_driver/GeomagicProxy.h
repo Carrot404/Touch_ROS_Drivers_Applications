@@ -108,7 +108,7 @@ struct GeomagicStatus {
 	std::vector<double> cartTwist;                                  //!< Twist vetor (URDF) TODO: compute velocity
 	std::vector<double> cartWrench;                                 //!< Wrench vetor (URDF) (DIM=3)
 	
-	double jacobian[SPACE_DIM * 2 * GEOMAGIC_HAPTIC_JOINTS];        //!< Raw Vectorized Jacobian matrix (TODO: Not verified yet)
+	// double jacobian[SPACE_DIM * 2 * GEOMAGIC_HAPTIC_JOINTS];        //!< Raw Vectorized Jacobian matrix (TODO: Not verified yet)
 
 	/* Joint space values */
 	hduVector3Dd PosAngles;                                         //!< Raw joint angles
@@ -182,22 +182,26 @@ public:
 	void stop();
 
 	/**
+	* @brief enable force output
+	*/
+	void enableforce();
+
+	/**
+	* @brief enable force output
+	*/
+	void disableforce();
+
+	/**
 	* @brief Set function
 	* Set to Joint space haptic force on the Geomagic device, which is default mode.
 	*/
-	void setJointForceMode(){this->mode_ = JOINT_SPACE;}
+	bool setJointForceMode();
 
 	/**
 	* @brief Set function
 	* Set to Cartesian space haptic force on the Geomagic device
 	*/
-	void setCartForceMode(){this->mode_ = CARTESIAN_SPACE;}
-
-	/**
-	* @brief Set function
-	* disable force feedback
-	*/
-	void setNoMode(){this->mode_ = NO_SPACE;}
+	bool setCartForceMode();
 
 	/**
 	* @brief Set function
@@ -298,7 +302,9 @@ protected:
 
 	bool available_;					     	//!< Flag stating if the external system is available
 	bool running_;					    	    //!< Flag stating if the main loop of the system is running
-	int mode_;                             //!< Flag stating control force in JOINT_SPACE or CARTESIAN_SPACE
+	bool isforce_;                              //!< Flag stating whether enable force output or not
+	int force_mode_;                            //!< Flag stating control force in JOINT_SPACE or CARTESIAN_SPACE
+
 	
 	hduVector3Dd command_;                      //!< force command
 };

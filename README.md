@@ -1,11 +1,11 @@
 # 3D Systems Geomagic Touch ROS Drivers and Applications
-ROS Packages for 3D Systems Geomagic Touch haptic device.
+ROS Packages for **3D Systems Geomagic Touch** haptic device.
 
 Then we will explore some interesting applications with UR3 robot which is to be continued.
 
 ___
 
-## 1. Installation (Touch Driver and OpenHaptics)
+## 1. Installation (Touch Driver and OpenHaptics Library)
 
 Environment: Ubuntu 18.04
 
@@ -54,7 +54,7 @@ sudo apt install libncurses5-dev freeglut3-dev zlib1g-dev
 # echo "export OH_SDK_BASE=/opt/OpenHaptics/Developer/3.4-0" > /etc/profile.d/openhaptics.sh
 ```
 
-### Ref Link
+### Link
 
 1. [3ds-touch-openhaptics-Github (how to install driver)](https://github.com/jhu-cisst-external/3ds-touch-openhaptics)
 2. [ubuntu18.04 update GLIBC_2.29](https://www.cnblogs.com/chenyirong/p/16342370.html)

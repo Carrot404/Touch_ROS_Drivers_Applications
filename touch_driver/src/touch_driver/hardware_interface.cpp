@@ -11,10 +11,6 @@ namespace touch_driver
 {
 
 HardwareInterface::HardwareInterface()
-    // : joint_names_(6)
-    // , joint_positions_(6)
-    // , joint_velocities_(6)
-    // , joint_efforts_(6)
     : joint_effort_command_(3)
     , tcp_pose_(7)
     , button_state_(6)
@@ -34,7 +30,8 @@ HardwareInterface::~HardwareInterface()
 {
   geo_proxy_->stop();
   geo_proxy_.reset();
-  fksolver_.reset();
+  // fksolver_.reset();
+  iksolver_.reset();
 }
 
 bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh)
@@ -43,18 +40,15 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
   // device_name is not used actually. Device name coule be modified in "GeomagicProxy.h"
   // std::string device_name = robot_hw_nh.param<std::string>("device_name", "carrot");
 
-  // Topic namespace
-  // std::string touch_namespace = robot_hw_nh.param<std::string>("touch_namespace", "Touch");
-
   // expected publisg rate 
   publish_rate_ = robot_hw_nh.param<int>("publish_rate", 500);
 
   // When the robot's URDF is being loaded with a prefix, we need to know it here, as well, in order
   // to publish correct frame names for frames reported by the robot directly.
-  robot_hw_nh.param<std::string>("tf_prefix", tf_prefix_, "Touch");
+  robot_hw_nh.param<std::string>("tf_prefix", tf_prefix_, "touch");
     
   // Names of the joints. Usually, this is given in the controller config file.
-  // if (!robot_hw_nh.getParam("joints", joint_names_))
+  // touch_hardware_interface/joints
   if (!robot_hw_nh.getParam("joints", joint_state_->joint_names))
   {
     ROS_ERROR_STREAM("Cannot find required parameter " << robot_hw_nh.resolveName("joints")
@@ -76,7 +70,6 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
       jnt_effort_interface_.registerHandle(
           hardware_interface::JointHandle(jnt_state_interface_.getHandle(joint_state_->joint_names[i]), &joint_effort_command_[i]));
     }
-
   }
 
   // Register interfaces
@@ -86,24 +79,30 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
   controllers_initialized_ = true;
   effort_controller_running_ = true;
 
-  // Publish pose to /tf
-  tcp_pose_pub_.reset(new realtime_tools::RealtimePublisher<tf2_msgs::TFMessage>(root_nh, "/tf", 100));
+  // Publish pose to /touch_hardware_interface/pose_ref
+  // originally publish to /tf 
+  tcp_pose_pub_.reset(new realtime_tools::RealtimePublisher<tf2_msgs::TFMessage>(root_nh, "pose_ref", 10));
   tcp_transform_.header.frame_id = "base_ref";
-  tcp_transform_.child_frame_id = "stylus_controller";
+  tcp_transform_.child_frame_id = "stylus_ref";
+  // tcp_transform_.child_frame_id = "stylus_controller";
 
-  // Publish button state to /Touch/button
-  std::string button_name = tf_prefix_ + "/button";
-  button_pub_.reset(new realtime_tools::RealtimePublisher<touch_msgs::TouchButtonEvent>(root_nh, button_name.c_str(), 10));
+  // Publish button state to /touch_hardware_interface/button
+  button_pub_.reset(new realtime_tools::RealtimePublisher<touch_msgs::TouchButtonEvent>(root_nh, "button", 10));
 
   // Initialize Geomagic Proxy
   ROS_INFO_STREAM("Initializing Geomagic Proxy");
   geo_proxy_ = std::make_shared<GeomagicProxy>();
 
-  fksolver_ = std::make_shared<ForwardKinematicSolver>();
-  if(!fksolver_->init(robot_hw_nh, joint_state_.get())){
+  // fksolver_ = std::make_shared<ForwardKinematicSolver>();
+  // if(!fksolver_->init(robot_hw_nh, joint_state_.get())){
+  //   ROS_ERROR("Failed to init ForwardKinematicSolver");
+  //   return false;
+  // }
+  iksolver_ = std::make_shared<InverseKinematicSolver>();
+  if(!iksolver_->init(robot_hw_nh, joint_state_.get())){
     ROS_ERROR("Failed to init ForwardKinematicSolver");
     return false;
-  } 
+  }
 
   return true;
 }
@@ -140,7 +139,8 @@ void HardwareInterface::read(const ros::Time& time, const ros::Duration& period)
     button_state_[5] = geo_state->action[1];
     publishButton();
 
-    fksolver_->publish(time);
+    // fksolver_->publish(time);
+    iksolver_->publish(time);
   }
 }
 

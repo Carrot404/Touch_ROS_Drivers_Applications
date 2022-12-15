@@ -8,18 +8,6 @@
 
 namespace touch_driver
 {
-
-ForwardKinematicSolver::ForwardKinematicSolver()
-{
-    // this->joint_state_ = std::make_shared<jointstate>();
-
-    // this->joint_state_->joint_names.resize(6);
-    // this->joint_state_->joint_positions.resize(6);
-    // this->joint_state_->joint_velocities.resize(6);
-    // this->joint_state_->joint_efforts.resize(6);
-
-}
-
 bool ForwardKinematicSolver::init(ros::NodeHandle &nh, jointstate* joint_state)
 {
     if(!KinematicChainBase::init(nh)){
@@ -32,7 +20,7 @@ bool ForwardKinematicSolver::init(ros::NodeHandle &nh, jointstate* joint_state)
     fk_vel_solver_.reset(new KDL::ChainFkSolverVel_recursive(kdl_chain_));
     fk_pos_solver_.reset(new KDL::ChainFkSolverPos_recursive(kdl_chain_));
 
-    pose_pub_ .reset(new realtime_tools::RealtimePublisher<touch_msgs::TouchPoseTwist>(nh, "pose_fk",100));
+    pose_pub_ .reset(new realtime_tools::RealtimePublisher<touch_msgs::TouchPoseTwist>(nh, "ee_state",10));
     pose_pub_->msg_.header.frame_id = root_name_;
     pose_pub_->msg_.child_frame_id = tip_name_;
 
@@ -68,4 +56,61 @@ void ForwardKinematicSolver::publish(const ros::Time& timestamp)
     }
 }
 
+bool InverseKinematicSolver::init(ros::NodeHandle &nh, jointstate* joint_state)
+{
+    if(!ForwardKinematicSolver::init(nh, joint_state)){
+        ROS_ERROR("Failed to init ForwardKinematicSolver");
+        return false;
+    }
+
+    // ik_vel_solver_.reset(new KDL::ChainIkSolverVel_pinv(kdl_chain_));
+    // ik_pos_solver_.reset(new KDL::ChainIkSolverPos_NR_JL(kdl_chain_, joint_limits_.min, joint_limits_.max, *fk_pos_solver_, *ik_vel_solver_));
+    tracik_pos_solver_.reset(new TRAC_IK::TRAC_IK(kdl_chain_, joint_limits_.min, joint_limits_.max));
+
+    // Topics
+    command_sub_ = nh.subscribe("command_cart_pos", 10,
+                            &InverseKinematicSolver::command_cart_pos,
+                            this,ros::TransportHints().reliable().tcpNoDelay());
+    command_pub_ = nh.advertise<trajectory_msgs::JointTrajectory>("/effort_joint_traj_controller/command",10);
+
+    x_des_.p.Zero();
+    x_des_.M.Identity();
+    q_cmd_.resize(this->kdl_chain_.getNrOfJoints());
+    
+    for(std::size_t i=0; i<joint_name_.size(); i++){
+        jnt_traj_.joint_names.push_back(joint_name_[i]);
+    }
+
+    return true;
+}
+
+void InverseKinematicSolver::command_cart_pos(const geometry_msgs::PoseConstPtr &msg)
+{
+    x_des_.p(0) = msg->position.x;
+    x_des_.p(1) = msg->position.y;
+    x_des_.p(2) = msg->position.z;
+    x_des_.M = KDL::Rotation::Quaternion(msg->orientation.x, msg->orientation.y, msg->orientation.z, msg->orientation.w);
+
+    // ERROR: kdl ik solver return -1;
+    // if(ik_pos_solver_->CartToJnt(this->joint_msr_.q, x_des_, q_cmd_)<0){
+    //     ROS_INFO("KDL: error may occur in ik solver.");
+    // }
+    // else{
+    //     ROS_INFO("KDL ik solver success");
+    // }
+    if(tracik_pos_solver_->CartToJnt(this->joint_msr_.q, x_des_, q_cmd_)<0){
+        ROS_INFO("Trac-ik: error may occur in ik solver.");
+    }
+    else{
+        ROS_INFO("Trac-ik solver success");
+        trajectory_msgs::JointTrajectoryPoint point;
+        for (std::size_t i=0; i<joint_name_.size(); i++){
+            point.positions.push_back(q_cmd_(i));
+        }
+        point.time_from_start = ros::Duration(2.0);
+        jnt_traj_.points.push_back(point);
+        command_pub_.publish(jnt_traj_);
+    }
+}
+    
 } // namespace touch_driver

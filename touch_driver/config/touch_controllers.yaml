@@ -1,8 +1,7 @@
-# Settings for ros_control control loop
-hardware_control_loop:
-   loop_hz: &loop_hz 500
-
 touch_hardware_interface:
+   # Settings for ros_control control loop
+   publish_rate: &loop_hz 500
+   # Setting Touch Joint
    joints: &robot_joints
      - joint1_waist
      - joint2_shoulder

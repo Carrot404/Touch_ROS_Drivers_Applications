@@ -137,7 +137,9 @@ protected:
 
 
     std::shared_ptr<GeomagicProxy> geo_proxy_;
-    std::shared_ptr<ForwardKinematicSolver> fksolver_;
+    // std::shared_ptr<ForwardKinematicSolver> fksolver_;
+    std::shared_ptr<InverseKinematicSolver> iksolver_;
+    
 
     hardware_interface::JointStateInterface jnt_state_interface_;
     hardware_interface::EffortJointInterface jnt_effort_interface_;

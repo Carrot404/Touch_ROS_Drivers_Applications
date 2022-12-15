@@ -22,7 +22,7 @@ GeomagicProxy::GeomagicProxy()
 	this->geoStatus_->cartTwist.resize(6);
 	this->geoStatus_->cartWrench.resize(3);
 
-	std::memset(this->geoStatus_->jacobian, 0.0, sizeof(double) * (SPACE_DIM * 2) * GEOMAGIC_HAPTIC_JOINTS);
+	// std::memset(this->geoStatus_->jacobian, 0.0, sizeof(double) * (SPACE_DIM * 2) * GEOMAGIC_HAPTIC_JOINTS);
 
 	/* Joint space values */
 	this->geoStatus_->PosAngles.set(0.0, 0.0, 0.0);
@@ -94,7 +94,8 @@ GeomagicProxy::GeomagicProxy()
 
 	this->setAvailable(true);
 	this->setRunning(false);
-	this->setJointForceMode();
+	this->isforce_ = false;
+	this->force_mode_ = NO_SPACE;
 
 	this->command_.set(0.0, 0.0, 0.0);
 }
@@ -107,38 +108,38 @@ void GeomagicProxy::HHD_Auto_Calibration(){
     hdGetIntegerv(HD_CALIBRATION_STYLE, &supportedCalibrationStyles);
     if (supportedCalibrationStyles & HD_CALIBRATION_ENCODER_RESET) {
         calibrationStyle = HD_CALIBRATION_ENCODER_RESET;
-		std::cout << "HD_CALIBRATION_ENCODER_RESET.." << std::endl;
+		std::cout << "Touch Device[INFO]: HD_CALIBRATION_ENCODER_RESET.." << std::endl;
     }
 	if (supportedCalibrationStyles & HD_CALIBRATION_INKWELL) {
         calibrationStyle = HD_CALIBRATION_INKWELL;
-		std::cout << "HD_CALIBRATION_INKWELL.." << std::endl;
+		std::cout << "Touch Device[INFO]: HD_CALIBRATION_INKWELL.." << std::endl;
     }
 	if (supportedCalibrationStyles & HD_CALIBRATION_AUTO) {
         calibrationStyle = HD_CALIBRATION_AUTO;
-		std::cout << "HD_CALIBRATION_AUTO.." << std::endl;
+		std::cout << "Touch Device[INFO]: HD_CALIBRATION_AUTO.." << std::endl;
     }
     if (calibrationStyle == HD_CALIBRATION_ENCODER_RESET) {
         do {
             hdUpdateCalibration(calibrationStyle);
-			std::cout << "Calibrating.. (put stylus in well)" << std::endl;
+			std::cout << "Touch Device[INFO]: Calibrating.. (put stylus in well)" << std::endl;
             if (HD_DEVICE_ERROR(error = hdGetError())) {
-                hduPrintError(stderr, &error, "Reset encoders reset failed.");
+                hduPrintError(stderr, &error, "Touch Device[ERROR]: Reset encoders reset failed.");
                 break;
             }
         } while (hdCheckCalibration() != HD_CALIBRATION_OK);
-		std::cout << "Calibration complete." << std::endl;
+		std::cout << "Touch Device[INFO]: Calibration complete." << std::endl;
     }
 
     while(hdCheckCalibration() != HD_CALIBRATION_OK) {
         usleep(1e6);
         if (hdCheckCalibration() == HD_CALIBRATION_NEEDS_MANUAL_INPUT)
-			std::cout << "Please place the device into the inkwell for calibration" << std::endl;
+			std::cout << "Touch Device[INFO]: Please place the device into the inkwell for calibration" << std::endl;
         else if (hdCheckCalibration() == HD_CALIBRATION_NEEDS_UPDATE) {
-			std::cout << "Calibration updated successfully" << std::endl;
+			std::cout << "Touch Device[INFO]: Calibration updated successfully" << std::endl;
             hdUpdateCalibration(calibrationStyle);
         }
         else{
-			std::cout << "Unknown calibration status" << std::endl;
+			std::cout << "Touch Device[ERROR]: Unknown calibration status" << std::endl;
 		}
     }
 }
@@ -167,10 +168,10 @@ void GeomagicProxy::run()
 	HDErrorInfo error;
 	this->dvcHandle_ = hdInitDevice(HD_MY_DEVICE);
 	if (HD_DEVICE_ERROR(error = hdGetError())) {
-		std::cout << "Failed to initialize haptic device. Code: 0x0" << std::endl;
+		std::cout << "Touch Device[ERROR]: Failed to initialize haptic device. Code: 0x0" << std::endl;
 		this->setAvailable(false);
 	}
-	std::cout << "Found Device: " << hdGetString(HD_DEVICE_MODEL_TYPE) << std::endl;
+	std::cout << "Touch Device[INFO]: Found Device: " << hdGetString(HD_DEVICE_MODEL_TYPE) << std::endl;
 
 	// Calibrate the device
 	HHD_Auto_Calibration();
@@ -178,19 +179,18 @@ void GeomagicProxy::run()
 	// Set running on true
 	this->setRunning(true);
 
-	std::cout << "Touch control loop started!\n";
+	std::cout << "Touch Device[INFO]: Touch control loop started!\n";
 
 	// Set the force feedback callback in the scheduler
 	this->schHandle_ = hdScheduleAsynchronous(forceFeedbackCallback, this, HD_MAX_SCHEDULER_PRIORITY);
 
-	// Enable force feedback
-	hdEnable(HD_FORCE_OUTPUT);
+	// disable force output when initialized
+	hdDisable(HD_FORCE_OUTPUT);
 
 	// Start the scheduler
-	//hdSetSchedulerRate(800);
 	hdStartScheduler();
 	if (HD_DEVICE_ERROR(error = hdGetError())) {
-		std::cout << "Failed to start scheduler" << std::endl;
+		std::cout << "Touch Device[ERROR]: Failed to start scheduler" << std::endl;
 	}
 
 	// Run the main loop
@@ -214,12 +214,12 @@ void GeomagicProxy::run()
 
 	// Disable the device
 	hdDisableDevice(this->dvcHandle_);
-
 }
 
 void GeomagicProxy::stop() 
 {
 	this->setRunning(false);
+	std::cout << "Touch Device[INFO]: STOP MAIN CONTROL LOOP" << std::endl;
 }
 
 HDCallbackCode updateGeoStateCallback(void* data) {
@@ -309,7 +309,7 @@ HDCallbackCode updateGeoStateCallback(void* data) {
 		device->geoStatus_->cartWrench[2] = device->geoStatus_->stylusForce[1];
 
 		// update Jacobian matrix
-		hdGetDoublev(HD_CURRENT_JACOBIAN, device->geoStatus_->jacobian);
+		// hdGetDoublev(HD_CURRENT_JACOBIAN, device->geoStatus_->jacobian);
 
 		// Test for Jacobian
 		// TODO: jacobian linear vel should be divide by 1000?
@@ -345,7 +345,6 @@ HDCallbackCode updateGeoStateCallback(void* data) {
 				device->geoStatus_->action[i]);
 		}
 	}
-
 	return HD_CALLBACK_DONE;
 }
 
@@ -358,31 +357,36 @@ HDCallbackCode updateGeoStateCallback(void* data) {
 HDCallbackCode forceFeedbackCallback(void* data) {
 
 	GeomagicProxy* device = (GeomagicProxy*)data;
-	// GeomagicProxy* device = static_cast<GeomagicProxy *>(data);
 
 	device->dvcHandle_ = hdGetCurrentDevice();
 	HDErrorInfo error;
-	hdBeginFrame(device->dvcHandle_);
-	if (device->mode_ == JOINT_SPACE){
-		hdSetDoublev(HD_CURRENT_JOINT_TORQUE, device->command_);
-	}
-	else if(device->mode_ == CARTESIAN_SPACE){
-		hdSetDoublev(HD_CURRENT_FORCE, device->command_);
-	}
-	else{
-		hdSetDoublev(HD_CURRENT_JOINT_TORQUE, hduVector3Dd(0.0, 0.0, 0.0));
-	}
-	
-	hdEndFrame(device->dvcHandle_);
+	if (device->isforce_){
+		// Begin frame
+		hdBeginFrame(device->dvcHandle_);
 
-	if (HD_DEVICE_ERROR(error = hdGetError()))
-	{
-		hduPrintError(stderr, &error, "Error during force scheduler callback");
-		device->setAvailable(false);
-		if (hduIsSchedulerError(&error))
-			return HD_CALLBACK_DONE;
+		if (device->force_mode_ == JOINT_SPACE){
+			hdSetDoublev(HD_CURRENT_JOINT_TORQUE, device->command_);
+		}
+		else if(device->force_mode_ == CARTESIAN_SPACE){
+			hdSetDoublev(HD_CURRENT_FORCE, device->command_);
+		}
+		else{
+			hdDisable(HD_FORCE_OUTPUT);
+		}
+
+		// End frame
+		hdEndFrame(device->dvcHandle_);
+
+		if (HD_DEVICE_ERROR(error = hdGetError()))
+		{
+			hduPrintError(stderr, &error, "Error during force scheduler callback");
+			device->setAvailable(false);
+			if (hduIsSchedulerError(&error))
+				return HD_CALLBACK_DONE;
+		}
+		else { device->setAvailable(true); }
 	}
-	else { device->setAvailable(true); }
+
 	return HD_CALLBACK_CONTINUE;
 }
 
@@ -471,6 +475,50 @@ void GeomagicProxy::updateJointVelocities()
 
 	for (int i=0; i<3; i++){
 		this->geoStatus_->jointVelocity[i+3] = hdUtils_->avelocityTemp[i];
+	}
+}
+
+void GeomagicProxy::enableforce()
+{
+	hdEnable(HD_FORCE_OUTPUT);
+	this->isforce_ = true;
+	this->force_mode_ = JOINT_SPACE;
+	std::cout << "Touch Device[INFO]: Enable force output! force_mode default to be set as JOINT_SPACE." << std::endl;
+}
+
+void GeomagicProxy::disableforce()
+{
+	hdDisable(HD_FORCE_OUTPUT);
+	this->isforce_ = false;
+	this->force_mode_ = NO_SPACE;
+	std::cout << "Touch Device[INFO]: Disable force output! force_mode default to be set as NO_SPACE." << std::endl;
+}
+
+bool GeomagicProxy::setJointForceMode()
+{
+	if(this->isforce_){
+		this->force_mode_ = JOINT_SPACE;
+		std::cout << "Touch Device[INFO]: force_mode is set to JOINT_SPACE." << std::endl;
+		return true;
+	}
+	else{
+		this->force_mode_ = NO_SPACE;
+		std::cout << "Touch Device[ERROR]: force output is disabled, failed to set force mode. Default to NO_SPACE" << std::endl;
+		return false;
+	}
+}
+
+bool GeomagicProxy::setCartForceMode()
+{
+	if(this->isforce_){
+		this->force_mode_ = CARTESIAN_SPACE;
+		std::cout << "Touch Device[INFO]: force_mode is set to CARTESIAN_SPACE." << std::endl;
+		return true;
+	}
+	else{
+		this->force_mode_ = NO_SPACE;
+		std::cout << "Touch Device[ERROR]: force output is disabled, failed to set force mode. Default to NO_SPACE" << std::endl;
+		return false;
 	}
 }
 

@@ -64,12 +64,16 @@
   <exec_depend>touch_msgs</exec_depend>
   <build_depend>geometry_msgs</build_depend>
   <exec_depend>geometry_msgs</exec_depend>
+  <build_depend>trajectory_msgs</build_depend>
+  <exec_depend>trajectory_msgs</exec_depend>
   <build_depend>urdf</build_depend>
   <exec_depend>urdf</exec_depend>
   <build_depend>kdl_conversions</build_depend>
   <exec_depend>kdl_conversions</exec_depend>
   <build_depend>kdl_parser</build_depend>
   <exec_depend>kdl_parser</exec_depend>
+  <build_depend>trac_ik_lib</build_depend>
+  <exec_depend>trac_ik_lib</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
