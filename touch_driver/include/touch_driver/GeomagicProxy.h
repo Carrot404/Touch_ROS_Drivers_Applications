@@ -209,7 +209,6 @@ public:
 	* @param Fx 
 	* @param Fy
 	* @param Fz
-	* TODO: raw force or urdf force 
 	*/
 	void setForceCommand(double Fx, double Fy, double Fz);
 
@@ -217,7 +216,6 @@ public:
 	* @brief Set function
 	* Set the command force to the Geomagic device according to the mode.
 	* @param vec force vector to be set
-	* TODO: raw force or urdf force 
 	*/
 	void setForceCommand(std::vector<double> vec);
 
@@ -305,7 +303,6 @@ protected:
 	bool isforce_;                              //!< Flag stating whether enable force output or not
 	int force_mode_;                            //!< Flag stating control force in JOINT_SPACE or CARTESIAN_SPACE
 
-	
 	hduVector3Dd command_;                      //!< force command
 };
 

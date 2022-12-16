@@ -13,10 +13,8 @@
 #include <realtime_tools/realtime_publisher.h>
 #include <tf2_msgs/TFMessage.h>
 #include <touch_msgs/TouchButtonEvent.h>
-
 #include <touch_driver/GeomagicProxy.h>
-// #include <touch_driver/kinematic_chain_solver.h>
-#include "kinematic_chain_solver.h"
+#include <touch_driver/kinematic_chain_solver.h>
 
 namespace touch_driver
 {
@@ -144,10 +142,6 @@ protected:
     hardware_interface::JointStateInterface jnt_state_interface_;
     hardware_interface::EffortJointInterface jnt_effort_interface_;
     
-    // std::vector<std::string> joint_names_;
-    // std::vector<double> joint_positions_;
-    // std::vector<double> joint_velocities_;
-    // std::vector<double> joint_efforts_;
     std::shared_ptr<jointstate> joint_state_;
     std::vector<double> joint_effort_command_;
     std::vector<double> tcp_pose_;                     //!< Pose vetor in order like this [pos.x, pos.y, pos.z, ori.x, ori.y, ori.z, ori.w]

@@ -371,7 +371,8 @@ HDCallbackCode forceFeedbackCallback(void* data) {
 			hdSetDoublev(HD_CURRENT_FORCE, device->command_);
 		}
 		else{
-			hdDisable(HD_FORCE_OUTPUT);
+			device->setJointForceMode();
+			hdSetDoublev(HD_CURRENT_JOINT_TORQUE, device->command_);
 		}
 
 		// End frame

@@ -9,14 +9,12 @@
 
 #include <csignal>
 #include <touch_driver/hardware_interface.h>
-// #include <touch_driver/kinematic_chain_solver.h>
-
 
 std::unique_ptr<touch_driver::HardwareInterface> g_hw_interface;
 
 void signalHandler(int signum)
 {
-  std::cout << "Interrupt signal (" << signum << ") received.\n";
+  std::cout << "touch_hardware_interface[INFO]: Interrupt signal (" << signum << ") received.\n";
 
   g_hw_interface.reset();
 
@@ -53,10 +51,10 @@ int main(int argc, char** argv)
 
     if (!g_hw_interface->init(nh, nh_priv))
     {
-        ROS_ERROR_STREAM("Could not correctly initialize robot. Exiting");
+        ROS_ERROR_STREAM("touch_hardware_interface[ERROR]: Could not correctly initialize touch_hardware_interface. Exiting");
         exit(1);
     }
-    ROS_DEBUG_STREAM("initialized hw interface");
+    ROS_INFO_STREAM("touch_hardware_interface[INFO]: initialized touch_hardware_interface.");
     controller_manager::ControllerManager cm(g_hw_interface.get(), nh);
 
     // loop and update geoStatus
@@ -97,6 +95,6 @@ int main(int argc, char** argv)
     }
 
     spinner.stop();
-    ROS_INFO_STREAM_NAMED("hardware_interface", "Shutting down.");
+    ROS_INFO_STREAM("touch_hardware_interface[INFO]: Shutting down.");
     return 0;
 }

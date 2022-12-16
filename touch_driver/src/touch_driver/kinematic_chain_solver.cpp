@@ -11,7 +11,7 @@ namespace touch_driver
 bool ForwardKinematicSolver::init(ros::NodeHandle &nh, jointstate* joint_state)
 {
     if(!KinematicChainBase::init(nh)){
-        ROS_ERROR("Failed to init Kinematic Base");
+        ROS_ERROR("KinematicChain[INFO]: Failed to init Kinematic Base");
         return false;
     }
 
@@ -59,7 +59,7 @@ void ForwardKinematicSolver::publish(const ros::Time& timestamp)
 bool InverseKinematicSolver::init(ros::NodeHandle &nh, jointstate* joint_state)
 {
     if(!ForwardKinematicSolver::init(nh, joint_state)){
-        ROS_ERROR("Failed to init ForwardKinematicSolver");
+        ROS_ERROR("KinematicSolver[ERROR]: Failed to init ForwardKinematicSolver");
         return false;
     }
 
@@ -99,10 +99,10 @@ void InverseKinematicSolver::command_cart_pos(const geometry_msgs::PoseConstPtr 
     //     ROS_INFO("KDL ik solver success");
     // }
     if(tracik_pos_solver_->CartToJnt(this->joint_msr_.q, x_des_, q_cmd_)<0){
-        ROS_INFO("Trac-ik: error may occur in ik solver.");
+        ROS_ERROR("KinematicSolver[ERROR]: error may occur in trac-ik solver.");
     }
     else{
-        ROS_INFO("Trac-ik solver success");
+        ROS_INFO("KinematicSolver[INFO]: trac-ik solver success");
         trajectory_msgs::JointTrajectoryPoint point;
         for (std::size_t i=0; i<joint_name_.size(); i++){
             point.positions.push_back(q_cmd_(i));

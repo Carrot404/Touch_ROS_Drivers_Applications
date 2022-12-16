@@ -51,7 +51,7 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
   // touch_hardware_interface/joints
   if (!robot_hw_nh.getParam("joints", joint_state_->joint_names))
   {
-    ROS_ERROR_STREAM("Cannot find required parameter " << robot_hw_nh.resolveName("joints")
+    ROS_ERROR_STREAM("touch_hardware_interface[ERROR]: Cannot find required parameter " << robot_hw_nh.resolveName("joints")
                                                       << " on the parameter server.");
     throw std::runtime_error("Cannot find required parameter "
                             "'controller_joint_names' on the parameter server.");
@@ -81,16 +81,16 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
 
   // Publish pose to /touch_hardware_interface/pose_ref
   // originally publish to /tf 
-  tcp_pose_pub_.reset(new realtime_tools::RealtimePublisher<tf2_msgs::TFMessage>(root_nh, "pose_ref", 10));
+  tcp_pose_pub_.reset(new realtime_tools::RealtimePublisher<tf2_msgs::TFMessage>(robot_hw_nh, "pose_ref", 10));
   tcp_transform_.header.frame_id = "base_ref";
   tcp_transform_.child_frame_id = "stylus_ref";
   // tcp_transform_.child_frame_id = "stylus_controller";
 
   // Publish button state to /touch_hardware_interface/button
-  button_pub_.reset(new realtime_tools::RealtimePublisher<touch_msgs::TouchButtonEvent>(root_nh, "button", 10));
+  button_pub_.reset(new realtime_tools::RealtimePublisher<touch_msgs::TouchButtonEvent>(robot_hw_nh, "button", 10));
 
   // Initialize Geomagic Proxy
-  ROS_INFO_STREAM("Initializing Geomagic Proxy");
+  ROS_INFO_STREAM("touch_hardware_interface[INFO]: Initializing Geomagic Proxy");
   geo_proxy_ = std::make_shared<GeomagicProxy>();
 
   // fksolver_ = std::make_shared<ForwardKinematicSolver>();
@@ -100,7 +100,7 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
   // }
   iksolver_ = std::make_shared<InverseKinematicSolver>();
   if(!iksolver_->init(robot_hw_nh, joint_state_.get())){
-    ROS_ERROR("Failed to init ForwardKinematicSolver");
+    ROS_ERROR("touch_hardware_interface[ERROR]: Failed to init InverseKinematicSolver");
     return false;
   }
 
@@ -122,11 +122,18 @@ void HardwareInterface::read(const ros::Time& time, const ros::Duration& period)
       }
     }
 
-    // publish to Topic /tf
-    for (std::size_t i = 0; i < tcp_pose_.size(); i++)
-    {
-      tcp_pose_[i] = geo_state->cartPose[i];
-    }
+    // publish to Topic /pose_ref
+    // for (std::size_t i = 0; i < tcp_pose_.size(); i++)
+    // {
+    //   tcp_pose_[i] = geo_state->cartPose[i];
+    // }
+    tcp_pose_[0] = - geo_state->cartPose[0];
+    tcp_pose_[1] = geo_state->cartPose[2];
+    tcp_pose_[2] = geo_state->cartPose[1];
+    tcp_pose_[3] = geo_state->cartPose[3];
+    tcp_pose_[4] = geo_state->cartPose[4];
+    tcp_pose_[5] = geo_state->cartPose[5];
+    tcp_pose_[6] = geo_state->cartPose[6];
     extractToolPose(time);
     publishPose();
 
@@ -150,8 +157,7 @@ void HardwareInterface::write(const ros::Time& time, const ros::Duration& period
   {
     if (effort_controller_running_)
     {
-      geo_proxy_->setJointForceMode();
-      // geo_proxy_->setNoMode();
+      // geo_proxy_->setJointForceMode();
       geo_proxy_->setForceCommand(joint_effort_command_);
     }
   }
@@ -168,7 +174,7 @@ bool HardwareInterface::prepareSwitch(const std::list<hardware_interface::Contro
     {
       if (!controller.claimed_resources.empty())
       {
-        ROS_ERROR_STREAM("Robot control is currently inactive. Starting controllers that claim resources is currently "
+        ROS_ERROR_STREAM("touch_hardware_interface[ERROR]: Robot control is currently inactive. Starting controllers that claim resources is currently "
                          "not possible. Not starting controller '"
                          << controller.name << "'");
         ret_val = false;
@@ -212,7 +218,7 @@ void HardwareInterface::doSwitch(const std::list<hardware_interface::ControllerI
   }
 }
 
-bool HardwareInterface::isRobotProgramRunning() const // TODO:
+bool HardwareInterface::isRobotProgramRunning() const
 {
   return robot_program_running_;
 }
@@ -296,9 +302,6 @@ bool HardwareInterface::checkControllerClaims(const std::set<std::string>& claim
   }
   return false;
 }
-
-
-
 
 } // namespace touch_driver
 
