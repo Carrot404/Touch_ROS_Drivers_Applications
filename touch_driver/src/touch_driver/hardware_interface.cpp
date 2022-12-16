@@ -18,6 +18,7 @@ HardwareInterface::HardwareInterface()
     , robot_program_running_(true)
     , controller_reset_necessary_(false)
     , controllers_initialized_(false)
+    , effort_output_start_(false)
 {
   joint_state_ = std::make_shared<jointstate>();
   joint_state_->joint_names.resize(6);
@@ -145,6 +146,16 @@ void HardwareInterface::read(const ros::Time& time, const ros::Duration& period)
     button_state_[4] = geo_state->action[0];
     button_state_[5] = geo_state->action[1];
     publishButton();
+    
+    if(button_state_[4] && !effort_output_start_){
+      geo_proxy_->enableforce();
+      ROS_INFO("touch_hardware_interface[INFO]: ENABLE force output");
+    }
+    if(!button_state_[4] && effort_output_start_){
+      geo_proxy_->disableforce();
+      ROS_INFO("touch_hardware_interface[INFO]: DISABLE force output");
+    }
+    effort_output_start_ = button_state_[4];
 
     // fksolver_->publish(time);
     iksolver_->publish(time);
@@ -153,15 +164,15 @@ void HardwareInterface::read(const ros::Time& time, const ros::Duration& period)
 
 void HardwareInterface::write(const ros::Time& time, const ros::Duration& period)
 {
-  if (robot_program_running_)
-  {
-    if (effort_controller_running_)
-    {
-      // geo_proxy_->setJointForceMode();
-      geo_proxy_->setForceCommand(joint_effort_command_);
-    }
+  if(effort_output_start_){
+    geo_proxy_->setForceCommand(joint_effort_command_);
+    // TODO: qie huan mo shi hou you yige dao trajectory 0 de li 
+    // zui hao yi dangqian dian wei zero point 
+    // xie yige  ceshi trajectory publisher.
   }
-  
+  else{
+    geo_proxy_->setForceCommand(0.0, 0.0, 0.0);
+  }
 }
 
 bool HardwareInterface::prepareSwitch(const std::list<hardware_interface::ControllerInfo>& start_list,

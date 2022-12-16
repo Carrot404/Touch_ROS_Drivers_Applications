@@ -27,6 +27,8 @@ ___
 
 ## 1. Overview
 
+![touch_configuration](../img/touch_configuration.png)
+
 ![touch_hardware_interface_node_map](../img/touch_hardware_interface_node_map.png)
 
 ## 2. Class
@@ -73,6 +75,12 @@ kinematic_chain_base provide basic kdl parser functions. It needs `robot_descrip
 kinematic_chain_solver mainly includes forward kinematic solver and inverse kinematic solver based on KDL and TRAC-IK, respectively. 
 
 ### 2.4 hardware_interface
+
+
+
+
+
+
 
 
 

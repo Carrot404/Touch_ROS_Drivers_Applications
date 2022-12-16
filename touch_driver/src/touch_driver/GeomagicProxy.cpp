@@ -185,7 +185,7 @@ void GeomagicProxy::run()
 	this->schHandle_ = hdScheduleAsynchronous(forceFeedbackCallback, this, HD_MAX_SCHEDULER_PRIORITY);
 
 	// disable force output when initialized
-	hdDisable(HD_FORCE_OUTPUT);
+	hdEnable(HD_FORCE_OUTPUT);
 
 	// Start the scheduler
 	hdStartScheduler();
@@ -360,10 +360,9 @@ HDCallbackCode forceFeedbackCallback(void* data) {
 
 	device->dvcHandle_ = hdGetCurrentDevice();
 	HDErrorInfo error;
+	// Begin frame
+	hdBeginFrame(device->dvcHandle_);
 	if (device->isforce_){
-		// Begin frame
-		hdBeginFrame(device->dvcHandle_);
-
 		if (device->force_mode_ == JOINT_SPACE){
 			hdSetDoublev(HD_CURRENT_JOINT_TORQUE, device->command_);
 		}
@@ -371,22 +370,21 @@ HDCallbackCode forceFeedbackCallback(void* data) {
 			hdSetDoublev(HD_CURRENT_FORCE, device->command_);
 		}
 		else{
-			device->setJointForceMode();
 			hdSetDoublev(HD_CURRENT_JOINT_TORQUE, device->command_);
 		}
-
-		// End frame
-		hdEndFrame(device->dvcHandle_);
-
-		if (HD_DEVICE_ERROR(error = hdGetError()))
-		{
-			hduPrintError(stderr, &error, "Error during force scheduler callback");
-			device->setAvailable(false);
-			if (hduIsSchedulerError(&error))
-				return HD_CALLBACK_DONE;
-		}
-		else { device->setAvailable(true); }
 	}
+	else{
+		hdSetDoublev(HD_CURRENT_JOINT_TORQUE, hduVector3Dd(0.0, 0.0, 0.0));
+	}
+	// End frame
+	hdEndFrame(device->dvcHandle_);
+	if (HD_DEVICE_ERROR(error = hdGetError())){
+		hduPrintError(stderr, &error, "Error during force scheduler callback");
+		device->setAvailable(false);
+		if (hduIsSchedulerError(&error))
+			return HD_CALLBACK_DONE;
+	}
+	else { device->setAvailable(true); }
 
 	return HD_CALLBACK_CONTINUE;
 }
@@ -481,7 +479,7 @@ void GeomagicProxy::updateJointVelocities()
 
 void GeomagicProxy::enableforce()
 {
-	hdEnable(HD_FORCE_OUTPUT);
+	// hdEnable(HD_FORCE_OUTPUT);
 	this->isforce_ = true;
 	this->force_mode_ = JOINT_SPACE;
 	std::cout << "Touch Device[INFO]: Enable force output! force_mode default to be set as JOINT_SPACE." << std::endl;
@@ -489,7 +487,7 @@ void GeomagicProxy::enableforce()
 
 void GeomagicProxy::disableforce()
 {
-	hdDisable(HD_FORCE_OUTPUT);
+	// hdDisable(HD_FORCE_OUTPUT);
 	this->isforce_ = false;
 	this->force_mode_ = NO_SPACE;
 	std::cout << "Touch Device[INFO]: Disable force output! force_mode default to be set as NO_SPACE." << std::endl;

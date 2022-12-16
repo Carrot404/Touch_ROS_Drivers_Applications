@@ -109,7 +109,7 @@ void InverseKinematicSolver::command_cart_pos(const geometry_msgs::PoseConstPtr 
         }
         point.time_from_start = ros::Duration(2.0);
         jnt_traj_.points.push_back(point);
-        command_pub_.publish(jnt_traj_);
+        // command_pub_.publish(jnt_traj_);
     }
 }
     

@@ -154,11 +154,11 @@ protected:
 
 
     bool effort_controller_running_;
-
     bool robot_program_running_;
-
     bool controller_reset_necessary_;
     bool controllers_initialized_;
+
+    bool effort_output_start_;
 
     std::string tf_prefix_;
     int publish_rate_;

@@ -22,7 +22,7 @@
 
   <!-- robot_state_publisher node subscribe /joint_states and publish it to /tf -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" >
-    <!-- <remap from="joint_states" to="touch_hardware_interface/joint_states" /> -->
+    <remap from="joint_states" to="touch_hardware_interface/joint_states" />
   </node>
 
   <!-- touch_moveit_config package failed to plan trajectory for touch -->
@@ -34,7 +34,7 @@
     <param name="tf_prefix" value="$(arg tf_prefix)" />
     <param name="root_name" value="$(arg root_name)" />
     <param name="tip_name" value="$(arg tip_name)" />
-    <!-- <remap from="joint_states" to="touch_hardware_interface/joint_states" /> -->
+    <remap from="joint_states" to="touch_hardware_interface/joint_states" />
   </node>
 
   <!-- spawn controller manager -->
