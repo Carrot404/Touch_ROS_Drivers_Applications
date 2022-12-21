@@ -31,7 +31,6 @@ HardwareInterface::~HardwareInterface()
 {
   geo_proxy_->stop();
   geo_proxy_.reset();
-  // fksolver_.reset();
   iksolver_.reset();
 }
 
@@ -94,11 +93,6 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
   ROS_INFO_STREAM("touch_hardware_interface[INFO]: Initializing Geomagic Proxy");
   geo_proxy_ = std::make_shared<GeomagicProxy>();
 
-  // fksolver_ = std::make_shared<ForwardKinematicSolver>();
-  // if(!fksolver_->init(robot_hw_nh, joint_state_.get())){
-  //   ROS_ERROR("Failed to init ForwardKinematicSolver");
-  //   return false;
-  // }
   iksolver_ = std::make_shared<InverseKinematicSolver>();
   if(!iksolver_->init(robot_hw_nh, joint_state_.get())){
     ROS_ERROR("touch_hardware_interface[ERROR]: Failed to init InverseKinematicSolver");
@@ -150,6 +144,8 @@ void HardwareInterface::read(const ros::Time& time, const ros::Duration& period)
     if(button_state_[4] && !effort_output_start_){
       geo_proxy_->enableforce();
       ROS_INFO("touch_hardware_interface[INFO]: ENABLE force output");
+      iksolver_->initController();
+      // TODO: to switch controller.
     }
     if(!button_state_[4] && effort_output_start_){
       geo_proxy_->disableforce();
@@ -157,7 +153,6 @@ void HardwareInterface::read(const ros::Time& time, const ros::Duration& period)
     }
     effort_output_start_ = button_state_[4];
 
-    // fksolver_->publish(time);
     iksolver_->publish(time);
   }
 }

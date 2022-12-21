@@ -58,6 +58,8 @@ public:
     // touch's chain has 3 joints. It works fine as long as the position term is fine. 
     void command_cart_pos(const geometry_msgs::PoseConstPtr &msg);
 
+    void initController();
+
 protected:
 
     // boost::shared_ptr<KDL::ChainIkSolverVel> ik_vel_solver_;
@@ -69,7 +71,7 @@ protected:
 
     KDL::Frame x_des_;                          // Desired end-effector pose
     KDL::JntArray q_cmd_;                       // Desired joint position
-    trajectory_msgs::JointTrajectory jnt_traj_; // Desired joint trajectory
+    // trajectory_msgs::JointTrajectory jnt_traj_; // Desired joint trajectory
 
 };
 
