@@ -71,12 +71,37 @@ bool InverseKinematicSolver::init(ros::NodeHandle &nh, jointstate* joint_state)
     command_sub_ = nh.subscribe("command_cart_pos", 10,
                             &InverseKinematicSolver::command_cart_pos,
                             this,ros::TransportHints().reliable().tcpNoDelay());
-    command_pub_ = nh.advertise<trajectory_msgs::JointTrajectory>("/effort_joint_traj_controller/command",10);
+    // command_pub_ = nh.advertise<trajectory_msgs::JointTrajectory>("/effort_joint_traj_controller/command",10);
+
+    // Server
+    compute_ik_srv_ = nh.advertiseService("compute_ik", &InverseKinematicSolver::computeIK, this);
 
     x_des_.p.Zero();
     x_des_.M.Identity();
     q_cmd_.resize(this->kdl_chain_.getNrOfJoints());
 
+    return true;
+}
+
+// TODO: track_ik compute wrong how to compute 3 joint
+bool InverseKinematicSolver::computeIK(touch_msgs::TouchIKRequest& req, touch_msgs::TouchIKResponse& res)
+{
+    x_des_.p(0) = req.position.position.x;
+    x_des_.p(1) = req.position.position.y;
+    x_des_.p(2) = req.position.position.z;
+    x_des_.M = KDL::Rotation::Quaternion(req.position.orientation.x, req.position.orientation.y, req.position.orientation.z, req.position.orientation.w);
+
+    if(tracik_pos_solver_->CartToJnt(this->joint_msr_.q, x_des_, q_cmd_)<0){
+        ROS_ERROR("KinematicSolver[ERROR]: error may occur in trac-ik solver.");
+    }
+    else{
+        ROS_INFO("KinematicSolver[INFO]: trac-ik solver success");
+
+        res.ok = true;
+        for (std::size_t i=0; i<joint_name_.size(); i++){
+            res.positions.push_back(q_cmd_(i));
+        }
+    }
     return true;
 }
 
@@ -100,19 +125,23 @@ void InverseKinematicSolver::command_cart_pos(const geometry_msgs::PoseConstPtr 
     else{
         ROS_INFO("KinematicSolver[INFO]: trac-ik solver success");
 
-        trajectory_msgs::JointTrajectory jnt_traj;
-        trajectory_msgs::JointTrajectoryPoint jnt_traj_pt;
+        ROS_INFO_STREAM("q1: " << q_cmd_(0));
+        ROS_INFO_STREAM("q2: " << q_cmd_(1));
+        ROS_INFO_STREAM("q3: " << q_cmd_(2));
 
-        jnt_traj.header.stamp = ros::Time::now();
-        for(std::size_t i=0; i<joint_name_.size(); i++){
-            jnt_traj.joint_names.push_back(joint_name_[i]);
-        }
-        for (std::size_t i=0; i<joint_name_.size(); i++){
-            jnt_traj_pt.positions.push_back(q_cmd_(i));
-        }
-        jnt_traj_pt.time_from_start = ros::Duration(2.0);
-        jnt_traj.points.push_back(jnt_traj_pt);
-        command_pub_.publish(jnt_traj);
+        // trajectory_msgs::JointTrajectory jnt_traj;
+        // trajectory_msgs::JointTrajectoryPoint jnt_traj_pt;
+
+        // jnt_traj.header.stamp = ros::Time::now();
+        // for(std::size_t i=0; i<joint_name_.size(); i++){
+        //     jnt_traj.joint_names.push_back(joint_name_[i]);
+        // }
+        // for (std::size_t i=0; i<joint_name_.size(); i++){
+        //     jnt_traj_pt.positions.push_back(q_cmd_(i));
+        // }
+        // jnt_traj_pt.time_from_start = ros::Duration(2.0);
+        // jnt_traj.points.push_back(jnt_traj_pt);
+        // command_pub_.publish(jnt_traj);
     }
 }
 

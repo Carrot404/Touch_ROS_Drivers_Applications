@@ -16,6 +16,7 @@
 #include <geometry_msgs/Pose.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <touch_msgs/TouchPoseTwist.h>
+#include <touch_msgs/TouchIK.h>
 #include <touch_driver/kinematic_chain_base.h>
 
 
@@ -62,17 +63,18 @@ public:
 
 protected:
 
+    bool computeIK(touch_msgs::TouchIKRequest& req, touch_msgs::TouchIKResponse& res);
+
     // boost::shared_ptr<KDL::ChainIkSolverVel> ik_vel_solver_;
     // boost::shared_ptr<KDL::ChainIkSolverPos> ik_pos_solver_;  
     boost::shared_ptr<TRAC_IK::TRAC_IK> tracik_pos_solver_;
 
     ros::Subscriber command_sub_;
-    ros::Publisher command_pub_;
+    // ros::Publisher command_pub_;
+    ros::ServiceServer compute_ik_srv_;
 
     KDL::Frame x_des_;                          // Desired end-effector pose
     KDL::JntArray q_cmd_;                       // Desired joint position
-    // trajectory_msgs::JointTrajectory jnt_traj_; // Desired joint trajectory
-
 };
 
 } // namespace touch_driver

@@ -161,6 +161,7 @@ void HardwareInterface::read(const ros::Time& time, const ros::Duration& period)
 
 void HardwareInterface::write(const ros::Time& time, const ros::Duration& period)
 {
+  // TODO: joint_effort_command Limit??
   if(effort_output_start_){
     geo_proxy_->setForceCommand(joint_effort_command_);
   }

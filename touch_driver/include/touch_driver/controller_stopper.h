@@ -11,7 +11,11 @@
 
 #include <controller_manager_msgs/SwitchController.h>
 #include <controller_manager_msgs/ListControllers.h>
+#include <trajectory_msgs/JointTrajectory.h>
+#include <trajectory_msgs/JointTrajectoryPoint.h>
+#include <geometry_msgs/Point.h>
 #include <touch_msgs/TouchButtonEvent.h>
+#include <touch_msgs/TouchIK.h>
 
 class ControllerStopper
 {
@@ -21,7 +25,10 @@ public:
   virtual ~ControllerStopper() = default;
 
 private:
+
   void buttonCallback(const touch_msgs::TouchButtonEventConstPtr& msg);
+
+  void poseCallback(const geometry_msgs::PointConstPtr& msg);
 
   /*!
    * \brief Queries running stoppable controllers.
@@ -33,7 +40,13 @@ private:
 
   ros::NodeHandle nh_;
   ros::NodeHandle priv_nh_;
-  ros::Subscriber controller_running_sub_;
+
+  ros::Subscriber button_sub_;
+  ros::Subscriber jnt_traj_sub_;
+  ros::Publisher jnt_traj_pub_;
+
+  ros::ServiceClient compute_ik_srv_;
+
   ros::ServiceClient controller_manager_srv_;
   ros::ServiceClient controller_list_srv_;
 

@@ -1,0 +1,5 @@
+# service to help compute Inverse kinematic of Touch
+geometry_msgs/Pose position
+---
+bool ok
+float64[] positions

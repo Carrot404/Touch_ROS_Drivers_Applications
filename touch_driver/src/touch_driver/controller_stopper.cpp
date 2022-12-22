@@ -11,7 +11,12 @@ ControllerStopper::ControllerStopper(const ros::NodeHandle& nh) : nh_(nh), priv_
   // Subscribes to a robot's running state topic. Ideally this topic is latched and only publishes
   // on changes. However, this node only reacts on state changes, so a state published each cycle
   // would also be fine.
-  controller_running_sub_ = nh_.subscribe("button", 1, &ControllerStopper::buttonCallback, this);
+  button_sub_ = nh_.subscribe("button", 10, &ControllerStopper::buttonCallback, this);
+  jnt_traj_sub_ = nh_.subscribe("command_cart_pos", 10, &ControllerStopper::poseCallback, this);
+  jnt_traj_pub_ = nh_.advertise<trajectory_msgs::JointTrajectory>("/effort_joint_traj_controller/command",10);
+
+  compute_ik_srv_ = nh_.serviceClient<touch_msgs::TouchIK>("/touch_hardware_interface/compute_ik");
+  compute_ik_srv_.waitForExistence();
 
   // Controller manager service to switch controllers
   controller_manager_srv_ = nh_.serviceClient<controller_manager_msgs::SwitchController>("controller_manager/"
@@ -92,4 +97,43 @@ void ControllerStopper::buttonCallback(const touch_msgs::TouchButtonEventConstPt
     }
   }
   button_action_prev_ = msg->grey_button_action;
+}
+
+void ControllerStopper::poseCallback(const geometry_msgs::PointConstPtr& msg)
+{
+  touch_msgs::TouchIK srv;
+  srv.request.position.position.x = msg->x;
+  srv.request.position.position.y = msg->y;
+  srv.request.position.position.z = msg->z;
+  if(compute_ik_srv_.call(srv)){
+    ROS_INFO_STREAM("controller_stopper[INFO]: succeed to call compute_ik service.");
+
+    trajectory_msgs::JointTrajectory jnt_traj;
+    trajectory_msgs::JointTrajectoryPoint jnt_traj_pt;
+
+    jnt_traj.header.stamp = ros::Time::now();
+    jnt_traj.joint_names.push_back("joint1_waist");
+    jnt_traj.joint_names.push_back("joint2_shoulder");
+    jnt_traj.joint_names.push_back("joint3_elbow");
+    ROS_INFO_STREAM("p1:"<< srv.response.positions[0]);
+    ROS_INFO_STREAM("p2:"<< srv.response.positions[1]);
+    ROS_INFO_STREAM("p3:"<< srv.response.positions[2]);
+    jnt_traj_pt.positions.push_back(srv.response.positions[0]);
+    jnt_traj_pt.positions.push_back(srv.response.positions[1]);
+    jnt_traj_pt.positions.push_back(srv.response.positions[2]);
+    jnt_traj_pt.time_from_start = ros::Duration(2.0);
+    jnt_traj.points.push_back(jnt_traj_pt);
+    jnt_traj_pub_.publish(jnt_traj);
+
+    // for (std::size_t i=0; i<joint_name_.size(); i++){
+    //     jnt_traj_pt.positions.push_back(q_cmd_(i));
+    // }
+    // jnt_traj_pt.time_from_start = ros::Duration(2.0);
+    // jnt_traj.points.push_back(jnt_traj_pt);
+    // command_pub_.publish(jnt_traj);
+  }
+  else{
+    ROS_ERROR_STREAM("controller_stopper[ERROR]: failed to call compute_ik service.");
+  }
+  
 }
