@@ -12,6 +12,8 @@
 #include <hardware_interface/joint_command_interface.h>
 #include <realtime_tools/realtime_publisher.h>
 #include <tf2_msgs/TFMessage.h>
+// #include <controller_manager_msgs/SwitchController.h>
+// #include <controller_manager_msgs/ListControllers.h>
 #include <touch_msgs/TouchButtonEvent.h>
 #include <touch_driver/GeomagicProxy.h>
 #include <touch_driver/kinematic_chain_solver.h>
@@ -132,8 +134,6 @@ protected:
     */
     void publishButton();
 
-
-
     std::shared_ptr<GeomagicProxy> geo_proxy_;
     std::shared_ptr<InverseKinematicSolver> iksolver_;
     
@@ -150,7 +150,8 @@ protected:
     std::unique_ptr<realtime_tools::RealtimePublisher<tf2_msgs::TFMessage>> tcp_pose_pub_;
     std::unique_ptr<realtime_tools::RealtimePublisher<touch_msgs::TouchButtonEvent>> button_pub_;
 
-
+    // ros::ServiceClient switch_controller_cli_;
+    // ros::ServiceClient list_controller_cli_;
 
     bool effort_controller_running_;
     bool robot_program_running_;

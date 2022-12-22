@@ -54,6 +54,8 @@
   <exec_depend>roscpp</exec_depend>
   <build_depend>controller_manager</build_depend>
   <exec_depend>controller_manager</exec_depend>
+  <build_depend>controller_manager_msgs</build_depend>
+  <exec_depend>controller_manager_msgs</exec_depend>
   <build_depend>hardware_interface</build_depend>
   <exec_depend>hardware_interface</exec_depend>
   <build_depend>realtime_tools</build_depend>

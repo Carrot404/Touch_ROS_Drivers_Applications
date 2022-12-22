@@ -11,6 +11,7 @@ find_package(catkin REQUIRED
     COMPONENTS
     roscpp
     controller_manager
+    controller_manager_msgs
     hardware_interface
     realtime_tools
     pluginlib
@@ -120,6 +121,7 @@ catkin_package(
     CATKIN_DEPENDS 
         roscpp
         controller_manager
+        controller_manager_msgs
         hardware_interface
         realtime_tools
         pluginlib
@@ -149,15 +151,16 @@ add_library(${PROJECT_NAME}
   src/${PROJECT_NAME}/GeomagicProxy.cpp
   src/${PROJECT_NAME}/kinematic_chain_base.cpp
   src/${PROJECT_NAME}/kinematic_chain_solver.cpp
+  src/${PROJECT_NAME}/controller_stopper.cpp
 )
 target_link_libraries(${PROJECT_NAME} HD HDU ${catkin_LIBRARIES})
 
 ## Declare a C++ executable
-add_executable(touch_driver_node 
-    src/hardware_interface_node.cpp
-)
+add_executable(touch_driver_node src/hardware_interface_node.cpp)
 target_link_libraries(touch_driver_node ${PROJECT_NAME} ${catkin_LIBRARIES})
 
+add_executable(controller_stopper_node src/controller_stopper_node.cpp)
+target_link_libraries(controller_stopper_node ${PROJECT_NAME} ${catkin_LIBRARIES})
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries

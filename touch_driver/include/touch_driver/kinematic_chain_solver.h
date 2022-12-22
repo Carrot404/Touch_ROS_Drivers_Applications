@@ -58,7 +58,7 @@ public:
     // touch's chain has 3 joints. It works fine as long as the position term is fine. 
     void command_cart_pos(const geometry_msgs::PoseConstPtr &msg);
 
-    void initController();
+    // void initController();
 
 protected:
 

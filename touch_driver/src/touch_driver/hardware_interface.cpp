@@ -89,6 +89,10 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
   // Publish button state to /touch_hardware_interface/button
   button_pub_.reset(new realtime_tools::RealtimePublisher<touch_msgs::TouchButtonEvent>(robot_hw_nh, "button", 10));
 
+  // client to switch controller
+  // switch_controller_cli_ = robot_hw_nh.serviceClient<controller_manager_msgs::SwitchController>("/controller_manager/switch_controller");
+  // list_controller_cli_ = robot_hw_nh.serviceClient<controller_manager_msgs::ListControllers>("/controller_manager/list_controllers");
+
   // Initialize Geomagic Proxy
   ROS_INFO_STREAM("touch_hardware_interface[INFO]: Initializing Geomagic Proxy");
   geo_proxy_ = std::make_shared<GeomagicProxy>();
@@ -144,8 +148,6 @@ void HardwareInterface::read(const ros::Time& time, const ros::Duration& period)
     if(button_state_[4] && !effort_output_start_){
       geo_proxy_->enableforce();
       ROS_INFO("touch_hardware_interface[INFO]: ENABLE force output");
-      iksolver_->initController();
-      // TODO: to switch controller.
     }
     if(!button_state_[4] && effort_output_start_){
       geo_proxy_->disableforce();
@@ -161,9 +163,6 @@ void HardwareInterface::write(const ros::Time& time, const ros::Duration& period
 {
   if(effort_output_start_){
     geo_proxy_->setForceCommand(joint_effort_command_);
-    // TODO: qie huan mo shi hou you yige dao trajectory 0 de li 
-    // zui hao yi dangqian dian wei zero point 
-    // xie yige  ceshi trajectory publisher.
   }
   else{
     geo_proxy_->setForceCommand(0.0, 0.0, 0.0);

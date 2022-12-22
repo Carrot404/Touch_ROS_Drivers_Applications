@@ -10,8 +10,8 @@
   <arg name="root_name" default="base" doc="root name for forward and inverse kinematic solver."/>
   <arg name="tip_name" default="end_effector" doc="tip name for forward and inverse kinematic solver."/>
   <arg name="controller_config_file" default="$(find touch_driver)/config/touch_controllers.yaml" doc="Config file used for defining the ROS-Control controllers."/>
-  <arg name="controllers" default="joint_state_controller effort_joint_traj_controller"/>
-  <arg name="stopped_controllers" default="joint_effort_controllers"/>
+  <arg name="controllers" default="joint_state_controller"/>
+  <arg name="stopped_controllers" default="effort_joint_traj_controller joint_effort_controllers"/>
 
   <!-- Load touch URDF -->
   <include file="$(find touch_description)/launch/load_touch.launch" >
@@ -45,6 +45,13 @@
   <!-- load other controller -->
   <node name="ros_control_stopped_spawner" pkg="controller_manager" type="spawner" respawn="false"
     output="screen" args="--stopped $(arg stopped_controllers)" unless="$(eval arg('stopped_controllers') == '')"/>
+
+  <node name="controller_stopper" pkg="touch_driver" type="controller_stopper_node" respawn="false" output="screen">
+    <remap from="button" to="touch_hardware_interface/button"/>
+    <rosparam param="consistent_controllers">
+       - "joint_state_controller"
+    </rosparam>
+  </node>
 
   <!-- launch rviz -->
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find touch_teleoperation)/cfg/touch_state.rviz" />

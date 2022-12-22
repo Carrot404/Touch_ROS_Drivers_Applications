@@ -116,21 +116,21 @@ void InverseKinematicSolver::command_cart_pos(const geometry_msgs::PoseConstPtr 
     }
 }
 
-void InverseKinematicSolver::initController()
-{
-    trajectory_msgs::JointTrajectory jnt_traj;
-    trajectory_msgs::JointTrajectoryPoint jnt_traj_pt;
+// void InverseKinematicSolver::initController()
+// {
+//     trajectory_msgs::JointTrajectory jnt_traj;
+//     trajectory_msgs::JointTrajectoryPoint jnt_traj_pt;
 
-    jnt_traj.header.stamp = ros::Time::now();
-    for(std::size_t i=0; i<joint_name_.size(); i++){
-        jnt_traj.joint_names.push_back(joint_name_[i]);
-    }
-    for (std::size_t i=0; i<joint_name_.size(); i++){
-        jnt_traj_pt.positions.push_back(joint_state_->joint_positions[i]);
-    }
-    jnt_traj_pt.time_from_start = ros::Duration(1.0);
-    jnt_traj.points.push_back(jnt_traj_pt);
-    command_pub_.publish(jnt_traj);
-}
+//     jnt_traj.header.stamp = ros::Time::now();
+//     for(std::size_t i=0; i<joint_name_.size(); i++){
+//         jnt_traj.joint_names.push_back(joint_name_[i]);
+//     }
+//     for (std::size_t i=0; i<joint_name_.size(); i++){
+//         jnt_traj_pt.positions.push_back(joint_state_->joint_positions[i]);
+//     }
+//     jnt_traj_pt.time_from_start = ros::Duration(1.0);
+//     jnt_traj.points.push_back(jnt_traj_pt);
+//     command_pub_.publish(jnt_traj);
+// }
     
 } // namespace touch_driver
