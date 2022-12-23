@@ -71,7 +71,7 @@ bool InverseKinematicSolver::init(ros::NodeHandle &nh, jointstate* joint_state)
     command_sub_ = nh.subscribe("command_cart_pos", 10,
                             &InverseKinematicSolver::command_cart_pos,
                             this,ros::TransportHints().reliable().tcpNoDelay());
-    // command_pub_ = nh.advertise<trajectory_msgs::JointTrajectory>("/effort_joint_traj_controller/command",10);
+    command_pub_ = nh.advertise<trajectory_msgs::JointTrajectory>("/effort_joint_traj_controller/command",10);
 
     // Server
     compute_ik_srv_ = nh.advertiseService("compute_ik", &InverseKinematicSolver::computeIK, this);
@@ -79,19 +79,22 @@ bool InverseKinematicSolver::init(ros::NodeHandle &nh, jointstate* joint_state)
     x_des_.p.Zero();
     x_des_.M.Identity();
     q_cmd_.resize(this->kdl_chain_.getNrOfJoints());
+    tolerance_.vel.Zero();
+    tolerance_.rot.x(FLT_MAX);
+    tolerance_.rot.y(FLT_MAX);
+    tolerance_.rot.z(FLT_MAX);
 
     return true;
 }
 
-// TODO: track_ik compute wrong how to compute 3 joint
 bool InverseKinematicSolver::computeIK(touch_msgs::TouchIKRequest& req, touch_msgs::TouchIKResponse& res)
 {
-    x_des_.p(0) = req.position.position.x;
-    x_des_.p(1) = req.position.position.y;
-    x_des_.p(2) = req.position.position.z;
-    x_des_.M = KDL::Rotation::Quaternion(req.position.orientation.x, req.position.orientation.y, req.position.orientation.z, req.position.orientation.w);
+    x_des_.p(0) = req.position.x;
+    x_des_.p(1) = req.position.y;
+    x_des_.p(2) = req.position.z;
+    x_des_.M = KDL::Rotation::Quaternion(0.0, 0.0, 0.0, 1.0);
 
-    if(tracik_pos_solver_->CartToJnt(this->joint_msr_.q, x_des_, q_cmd_)<0){
+    if(tracik_pos_solver_->CartToJnt(this->joint_msr_.q, x_des_, q_cmd_, tolerance_)<0){
         ROS_ERROR("KinematicSolver[ERROR]: error may occur in trac-ik solver.");
     }
     else{
@@ -105,61 +108,33 @@ bool InverseKinematicSolver::computeIK(touch_msgs::TouchIKRequest& req, touch_ms
     return true;
 }
 
-void InverseKinematicSolver::command_cart_pos(const geometry_msgs::PoseConstPtr &msg)
+void InverseKinematicSolver::command_cart_pos(const geometry_msgs::PointConstPtr &msg)
 {
-    x_des_.p(0) = msg->position.x;
-    x_des_.p(1) = msg->position.y;
-    x_des_.p(2) = msg->position.z;
-    x_des_.M = KDL::Rotation::Quaternion(msg->orientation.x, msg->orientation.y, msg->orientation.z, msg->orientation.w);
+    x_des_.p(0) = msg->x;
+    x_des_.p(1) = msg->y;
+    x_des_.p(2) = msg->z;
+    x_des_.M = KDL::Rotation::Quaternion(0.0, 0.0, 0.0, 1.0);
 
-    // ERROR: kdl ik solver return -1;
-    // if(ik_pos_solver_->CartToJnt(this->joint_msr_.q, x_des_, q_cmd_)<0){
-    //     ROS_INFO("KDL: error may occur in ik solver.");
-    // }
-    // else{
-    //     ROS_INFO("KDL ik solver success");
-    // }
-    if(tracik_pos_solver_->CartToJnt(this->joint_msr_.q, x_des_, q_cmd_)<0){
+    if(tracik_pos_solver_->CartToJnt(this->joint_msr_.q, x_des_, q_cmd_, tolerance_)<0){
         ROS_ERROR("KinematicSolver[ERROR]: error may occur in trac-ik solver.");
     }
     else{
         ROS_INFO("KinematicSolver[INFO]: trac-ik solver success");
 
-        ROS_INFO_STREAM("q1: " << q_cmd_(0));
-        ROS_INFO_STREAM("q2: " << q_cmd_(1));
-        ROS_INFO_STREAM("q3: " << q_cmd_(2));
+        trajectory_msgs::JointTrajectory jnt_traj;
+        trajectory_msgs::JointTrajectoryPoint jnt_traj_pt;
 
-        // trajectory_msgs::JointTrajectory jnt_traj;
-        // trajectory_msgs::JointTrajectoryPoint jnt_traj_pt;
-
-        // jnt_traj.header.stamp = ros::Time::now();
-        // for(std::size_t i=0; i<joint_name_.size(); i++){
-        //     jnt_traj.joint_names.push_back(joint_name_[i]);
-        // }
-        // for (std::size_t i=0; i<joint_name_.size(); i++){
-        //     jnt_traj_pt.positions.push_back(q_cmd_(i));
-        // }
-        // jnt_traj_pt.time_from_start = ros::Duration(2.0);
-        // jnt_traj.points.push_back(jnt_traj_pt);
-        // command_pub_.publish(jnt_traj);
+        jnt_traj.header.stamp = ros::Time::now();
+        for(std::size_t i=0; i<joint_name_.size(); i++){
+            jnt_traj.joint_names.push_back(joint_name_[i]);
+        }
+        for (std::size_t i=0; i<joint_name_.size(); i++){
+            jnt_traj_pt.positions.push_back(q_cmd_(i));
+        }
+        jnt_traj_pt.time_from_start = ros::Duration(2.0);
+        jnt_traj.points.push_back(jnt_traj_pt);
+        command_pub_.publish(jnt_traj);
     }
 }
-
-// void InverseKinematicSolver::initController()
-// {
-//     trajectory_msgs::JointTrajectory jnt_traj;
-//     trajectory_msgs::JointTrajectoryPoint jnt_traj_pt;
-
-//     jnt_traj.header.stamp = ros::Time::now();
-//     for(std::size_t i=0; i<joint_name_.size(); i++){
-//         jnt_traj.joint_names.push_back(joint_name_[i]);
-//     }
-//     for (std::size_t i=0; i<joint_name_.size(); i++){
-//         jnt_traj_pt.positions.push_back(joint_state_->joint_positions[i]);
-//     }
-//     jnt_traj_pt.time_from_start = ros::Duration(1.0);
-//     jnt_traj.points.push_back(jnt_traj_pt);
-//     command_pub_.publish(jnt_traj);
-// }
-    
+ 
 } // namespace touch_driver

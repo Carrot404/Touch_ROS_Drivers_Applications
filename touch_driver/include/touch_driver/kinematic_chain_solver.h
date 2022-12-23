@@ -13,7 +13,7 @@
 #include <kdl_conversions/kdl_msg.h>
 #include <trac_ik/trac_ik.hpp>
 
-#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/Point.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <touch_msgs/TouchPoseTwist.h>
 #include <touch_msgs/TouchIK.h>
@@ -56,10 +56,7 @@ public:
 
     bool init(ros::NodeHandle &nh, jointstate* joint_state);
 
-    // touch's chain has 3 joints. It works fine as long as the position term is fine. 
-    void command_cart_pos(const geometry_msgs::PoseConstPtr &msg);
-
-    // void initController();
+    void command_cart_pos(const geometry_msgs::PointConstPtr &msg);
 
 protected:
 
@@ -70,11 +67,12 @@ protected:
     boost::shared_ptr<TRAC_IK::TRAC_IK> tracik_pos_solver_;
 
     ros::Subscriber command_sub_;
-    // ros::Publisher command_pub_;
+    ros::Publisher command_pub_;
     ros::ServiceServer compute_ik_srv_;
 
     KDL::Frame x_des_;                          // Desired end-effector pose
     KDL::JntArray q_cmd_;                       // Desired joint position
+    KDL::Twist tolerance_;                      // Important: ik solver tolerance
 };
 
 } // namespace touch_driver

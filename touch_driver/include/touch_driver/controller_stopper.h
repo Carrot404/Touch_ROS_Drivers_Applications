@@ -28,22 +28,16 @@ private:
 
   void buttonCallback(const touch_msgs::TouchButtonEventConstPtr& msg);
 
-  void poseCallback(const geometry_msgs::PointConstPtr& msg);
+  void positionCallback(const geometry_msgs::PointConstPtr& msg);
 
-  /*!
-   * \brief Queries running stoppable controllers.
-   *
-   * Queries the controller manager for running controllers and compares the result with the
-   * consistent_controllers_. The remaining running controllers are stored in stopped_controllers_
-   */
   void findStoppableControllers();
 
   ros::NodeHandle nh_;
   ros::NodeHandle priv_nh_;
 
   ros::Subscriber button_sub_;
-  ros::Subscriber jnt_traj_sub_;
-  ros::Publisher jnt_traj_pub_;
+  // ros::Subscriber jnt_traj_sub_;
+  // ros::Publisher jnt_traj_pub_;
 
   ros::ServiceClient compute_ik_srv_;
 

@@ -1,7 +1,0 @@
-<launch>
-        <param name="robot_description" command="cat $(find touch_description)/urdf/touch.urdf" />
-        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
-        <node name="omni1" pkg="touch_common" type="omni" output="screen" />
-        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find touch_common)/launch/omni.rviz" required="true" />
-</launch>
-

@@ -5,7 +5,10 @@ Then we will explore some interesting applications with UR3 robot which is to be
 
 ___
 
-## 1. Installation (Touch Driver and OpenHaptics Library)
+- [1. Installation](#1-installation)
+- [2. ROS Driver](#2-ros-driver)
+
+## 1. Installation
 
 Environment: Ubuntu 18.04
 
@@ -61,15 +64,15 @@ sudo apt install libncurses5-dev freeglut3-dev zlib1g-dev
 
 ##  2. ROS Driver
 
-The Touch ROS driver is originally forked from Francisco Suárez Ruiz [phantom_omni](https://github.com/fsuarez6/phantom_omni). 
+One good example of Touch ROS Driver is developed by Francisco Suárez Ruiz [here](https://github.com/fsuarez6/phantom_omni). 
 
-
+The author also develop a Touch ROS Driver for own application in `touch_driver`. see the [doc](./touch_driver/README.md).
 
 ## 3. Applications with UR3
 
 ### 3.1 Tele-operation
 
-to be continued...
+#TODO:
 
 
 

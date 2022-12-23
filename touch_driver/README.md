@@ -21,7 +21,7 @@ ___
 
   - [2.4 hardware_interface](#24-hardware_interface)
 
-    - [2.4.1 ]()
+  - [2.5 controller_stopper](#25-controller_stopper)
 
 - [3. Problem](#3-problem)
 
@@ -76,22 +76,19 @@ kinematic_chain_solver mainly includes forward kinematic solver and inverse kine
 
 ### 2.4 hardware_interface
 
+![gazebo_ros_control](../img/gazebo_ros_control.png)
 
+**HardwareInterface** handles the interface between the ROS system (**Controller/Controller Manager**) and the real touch driver **GeomagicProxy**. It contains the read and write methods of the main control loop and registers various ROS topics and services.
 
+#### 2.4.2 TODO
 
+1. TODO:
 
+### 2.5 controller_stopper
 
-
-
-
-#### 2.4.5 TODO
-
-1. **controller manager**: do with these two functions `prepareSwitch` and `doSwitch` to switch controller.
-2. 
-
-
+**controller stoppper** is used for switch controller via controller manager service according to the button states. Because the author failed to call service in the read/write main loop.
 
 ## 3. Problem
 
-1. when the author apply `joint_effort_controllers` to cartesian position interface, it will cause large tremble. when th author do joint effort control, it works fine. 
-1. based on the above problem, the author intends to realize `cartesian force controller` with `EffortJointInterface` when solving inverse kinematic problem for every joint. One method is to apply moveit to solver the ik problem and plan trajectory for me. But the `touch_moveit_config` failed to solve. So then the author plan to solve ik by myself using KDL or TRAC-IK. It turns out that TRAC-IK works better than KDL.
+1. when the author apply `joint_effort_controllers` to cartesian position interface, it will cause large tremble. when th author do joint effort control, it works fine. (Solved)
+1. based on the above problem, the author intends to realize `cartesian force controller` with `EffortJointInterface` when solving inverse kinematic problem for every joint. One method is to apply moveit to solver the ik problem and plan trajectory for me. But the `touch_moveit_config` failed to solve. So then the author plan to solve ik by myself using KDL or TRAC-IK. It turns out that TRAC-IK works better than KDL. (Solved)
